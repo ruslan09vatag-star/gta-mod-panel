@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Панель Модерації UKRAINE GTA</title>
-  <!-- Підключаємо бібліотеку Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
@@ -14,18 +13,17 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
     }
-    .auth-card {
+    .auth-card, .dashboard-card {
       background: #1e293b;
       padding: 30px;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      width: 320px;
+      width: 350px;
       text-align: center;
     }
-    .auth-card h2 { margin-bottom: 20px; }
     .input-group { margin-bottom: 15px; text-align: left; }
     .input-group label { display: block; font-size: 12px; margin-bottom: 5px; color: #94a3b8; }
     .input-group input, .input-group select {
@@ -60,12 +58,27 @@
       cursor: pointer;
       margin-top: 8px;
     }
-    .btn-secondary:hover { background: #334155; color: white; }
+    .btn-danger {
+      background: #ef4444;
+      border: none;
+      padding: 10px;
+      color: white;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 15px;
+    }
+    .btn-danger:hover { background: #dc2626; }
+    
+    /* Ховаємо панель до успішного входу */
+    #main-panel { display: none; }
   </style>
 </head>
 <body>
 
-  <div class="auth-card">
+  <!-- Блок авторизації -->
+  <div class="auth-card" id="auth-card">
     <h2>Авторизація</h2>
     
     <div class="input-group">
@@ -99,14 +112,23 @@
     <button class="btn-secondary" onclick="register()">Створити акаунт</button>
   </div>
 
+  <!-- Блок модераторської панелі (відкривається після входу) -->
+  <div class="dashboard-card" id="main-panel">
+    <h2>Панель Модератора</h2>
+    <p>Вітаємо в системі, <b id="user-nick">Модератор</b>!</p>
+    <hr style="border-color: #334155; margin: 20px 0;">
+    
+    <p style="color: #94a3b8; font-size: 14px;">Тут будуть розташовані твої робочі інструменти та модераторські функції.</p>
+
+    <button class="btn-danger" onclick="logout()">Вийти з акаунта</button>
+  </div>
+
   <script>
-    // Налаштування Supabase та Telegram
     const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
     const BOT_TOKEN = '8997988532:AAG6DFjrVDzkwZ7EX4gY_QGtEuUcAo9VNTc';
     const ADMIN_CHAT_ID = '1841122025';
 
-    // Змінна називається supabaseClient, щоб уникнути конфлікту імен
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // Створення акаунту
@@ -121,7 +143,6 @@
         return;
       }
 
-      // 1. Реєстрація в Supabase Auth
       const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
       if (error) {
@@ -131,7 +152,6 @@
 
       const userId = data.user.id;
 
-      // 2. Збереження профілю у базі зі статусом 'pending'
       const { error: dbError } = await supabaseClient.from('profiles').insert([
         { id: userId, nick: nick, server: server, email: email, status: 'pending' }
       ]);
@@ -141,7 +161,6 @@
         return;
       }
 
-      // 3. Відправка повідомлення в Telegram
       const text = `📩 <b>Нова заявка на доступ!</b>\n\n` +
                    `👤 <b>Нік:</b> ${nick}\n` +
                    `🌐 <b>Сервер:</b> ${server}\n` +
@@ -188,10 +207,10 @@
         return;
       }
 
-      // Перевірка статусу в базі
+      // Отримуємо дані профілю
       const { data: profile } = await supabaseClient
         .from('profiles')
-        .select('status')
+        .select('*')
         .eq('id', data.user.id)
         .single();
 
@@ -202,8 +221,18 @@
         alert("❌ Твоєї заявці відмовлено в доступі!");
         await supabaseClient.auth.signOut();
       } else if (profile.status === 'approved') {
-        alert("✅ Успішний вхід!");
+        // УСПІШНИЙ ВХІД: Ховаємо авторизацію, показуємо панель!
+        document.getElementById('auth-card').style.display = 'none';
+        document.getElementById('main-panel').style.display = 'block';
+        document.getElementById('user-nick').innerText = profile.nick || 'Модератор';
       }
+    }
+
+    // Вихід з системи
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      document.getElementById('main-panel').style.display = 'none';
+      document.getElementById('auth-card').style.display = 'block';
     }
   </script>
 </body>
