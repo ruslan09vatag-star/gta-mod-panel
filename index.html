@@ -47,16 +47,16 @@
       margin-top: 10px;
     }
     .btn-primary:hover { background: #2563eb; }
-    .btn-secondary {
-      width: 100%;
-      padding: 10px;
-      background: transparent;
-      border: 1px solid #334155;
-      border-radius: 6px;
+    .toggle-text {
+      margin-top: 15px;
+      font-size: 13px;
       color: #94a3b8;
-      font-weight: bold;
+    }
+    .toggle-text span {
+      color: #3b82f6;
       cursor: pointer;
-      margin-top: 8px;
+      text-decoration: underline;
+      font-weight: bold;
     }
     .btn-danger {
       background: #ef4444;
@@ -71,15 +71,16 @@
     }
     .btn-danger:hover { background: #dc2626; }
     
-    /* Ховаємо панель до успішного входу */
+    /* Додаткові поля за замовчуванням приховані */
+    .register-only { display: none; }
     #main-panel { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- Блок авторизації -->
+  <!-- Форма Авторизації / Реєстрації -->
   <div class="auth-card" id="auth-card">
-    <h2>Авторизація</h2>
+    <h2 id="form-title">Авторизація</h2>
     
     <div class="input-group">
       <label>Email</label>
@@ -91,12 +92,13 @@
       <input type="password" id="password" placeholder="••••••••">
     </div>
 
-    <div class="input-group">
+    <!-- Поля, які показуються ТІЛЬКИ при реєстрації -->
+    <div class="input-group register-only">
       <label>Ігровий Нікнейм</label>
       <input type="text" id="nick" placeholder="Руслан Мандарин">
     </div>
 
-    <div class="input-group">
+    <div class="input-group register-only">
       <label>Сервер</label>
       <select id="server">
         <option value="01 Сервер">01 Сервер</option>
@@ -108,18 +110,19 @@
       </select>
     </div>
 
-    <button class="btn-primary" onclick="login()">Увійти</button>
-    <button class="btn-secondary" onclick="register()">Створити акаунт</button>
+    <button class="btn-primary" id="submit-btn" onclick="handleAuth()">Увійти</button>
+
+    <div class="toggle-text" id="toggle-box">
+      Якщо у вас немає акаунта, <span onclick="toggleMode(true)">створіть його</span>
+    </div>
   </div>
 
-  <!-- Блок модераторської панелі (відкривається після входу) -->
+  <!-- Панель Модератора -->
   <div class="dashboard-card" id="main-panel">
     <h2>Панель Модератора</h2>
     <p>Вітаємо в системі, <b id="user-nick">Модератор</b>!</p>
     <hr style="border-color: #334155; margin: 20px 0;">
-    
-    <p style="color: #94a3b8; font-size: 14px;">Тут будуть розташовані твої робочі інструменти та модераторські функції.</p>
-
+    <p style="color: #94a3b8; font-size: 14px;">Тут будуть розташовані твої робочі інструменти.</p>
     <button class="btn-danger" onclick="logout()">Вийти з акаунта</button>
   </div>
 
@@ -130,8 +133,39 @@
     const ADMIN_CHAT_ID = '1841122025';
 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let isRegisterMode = false;
 
-    // Створення акаунту
+    // Перемикач між Входом та Реєстрацією
+    function toggleMode(register) {
+      isRegisterMode = register;
+      const regFields = document.querySelectorAll('.register-only');
+      const title = document.getElementById('form-title');
+      const btn = document.getElementById('submit-btn');
+      const toggleBox = document.getElementById('toggle-box');
+
+      if (isRegisterMode) {
+        regFields.forEach(el => el.style.display = 'block');
+        title.innerText = 'Реєстрація';
+        btn.innerText = 'Зареєструватися';
+        toggleBox.innerHTML = 'Вже є акаунт? <span onclick="toggleMode(false)">Увійти</span>';
+      } else {
+        regFields.forEach(el => el.style.display = 'none');
+        title.innerText = 'Авторизація';
+        btn.innerText = 'Увійти';
+        toggleBox.innerHTML = 'Якщо у вас немає акаунта, <span onclick="toggleMode(true)">створіть його</span>';
+      }
+    }
+
+    // Головна функція
+    async function handleAuth() {
+      if (isRegisterMode) {
+        await register();
+      } else {
+        await login();
+      }
+    }
+
+    // Реєстрація
     async function register() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
@@ -140,6 +174,12 @@
 
       if (!email || !password || !nick) {
         alert("Заповни всі поля!");
+        return;
+      }
+
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailRegex.test(email)) {
+        alert("❌ Введіть коректну електронну пошту!");
         return;
       }
 
@@ -152,8 +192,9 @@
 
       const userId = data.user.id;
 
+      // Створюємо профіль із прапорцем, що сповіщення в ТГ ще НЕ відправлялося (tg_sent: false)
       const { error: dbError } = await supabaseClient.from('profiles').insert([
-        { id: userId, nick: nick, server: server, email: email, status: 'pending' }
+        { id: userId, nick: nick, server: server, email: email, status: 'pending', tg_sent: false }
       ]);
 
       if (dbError) {
@@ -161,36 +202,11 @@
         return;
       }
 
-      const text = `📩 <b>Нова заявка на доступ!</b>\n\n` +
-                   `👤 <b>Нік:</b> ${nick}\n` +
-                   `🌐 <b>Сервер:</b> ${server}\n` +
-                   `📧 <b>Email:</b> ${email}\n` +
-                   `🆔 <b>ID:</b> <code>${userId}</code>`;
-
-      const inlineKeyboard = {
-        inline_keyboard: [
-          [
-            { text: "✅ Схвалити", callback_data: `approve_${userId}` },
-            { text: "❌ Відхилити", callback_data: `reject_${userId}` }
-          ]
-        ]
-      };
-
-      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: ADMIN_CHAT_ID,
-          text: text,
-          parse_mode: 'HTML',
-          reply_markup: inlineKeyboard
-        })
-      });
-
-      alert("Заявку відправлено! Вона чекає підтвердження від адміністратора.");
+      alert("📧 Лист підтвердження відправлено на вашу пошту! Зайдіть на пошту та перейдіть за посиланням.");
+      toggleMode(false); // Повертаємо на екран входу
     }
 
-    // Вхід у систему
+    // Вхід
     async function login() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
@@ -207,32 +223,71 @@
         return;
       }
 
-      // Отримуємо дані профілю
+      // Перевіряємо, чи підтвердив користувач пошту
+      if (!data.user.email_confirmed_at) {
+        alert("❌ Ваша пошта ще не підтверджена! Будь ласка, перевірте поштову скриньку.");
+        await supabaseClient.auth.signOut();
+        return;
+      }
+
+      // Отримуємо профіль з бази
       const { data: profile } = await supabaseClient
         .from('profiles')
         .select('*')
         .eq('id', data.user.id)
         .single();
 
+      // ЯКЩО ПОШТА ПІДТВЕРДЖЕНА, АЛЕ ПОВІДОМЛЕННЯ В ТЕЛЕГРАМ ЩЕ НЕ ВІДПРАВЛЯЛОСЯ:
+      if (profile && !profile.tg_sent) {
+        const text = `📩 <b>Нова заявка (Пошту підтверджено)!</b>\n\n` +
+                     `👤 <b>Нік:</b> ${profile.nick}\n` +
+                     `🌐 <b>Сервер:</b> ${profile.server}\n` +
+                     `📧 <b>Email:</b> ${profile.email}\n` +
+                     `🆔 <b>ID:</b> <code>${profile.id}</code>`;
+
+        const inlineKeyboard = {
+          inline_keyboard: [
+            [
+              { text: "✅ Схвалити", callback_data: `approve_${profile.id}` },
+              { text: "❌ Відхилити", callback_data: `reject_${profile.id}` }
+            ]
+          ]
+        };
+
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: ADMIN_CHAT_ID,
+            text: text,
+            parse_mode: 'HTML',
+            reply_markup: inlineKeyboard
+          })
+        });
+
+        // Позначаємо в базі, що сповіщення відправлено
+        await supabaseClient.from('profiles').update({ tg_sent: true }).eq('id', profile.id);
+      }
+
+      // Перевіряємо статус доступів
       if (!profile || profile.status === 'pending') {
-        alert("⏳ Твій акаунт ще на перевірці в адміністратора!");
+        alert("⏳ Ваша пошта підтверджена, а заявку відправлено адміністратору! Очікуйте на схвалення.");
         await supabaseClient.auth.signOut();
       } else if (profile.status === 'rejected') {
         alert("❌ Твоєї заявці відмовлено в доступі!");
         await supabaseClient.auth.signOut();
       } else if (profile.status === 'approved') {
-        // УСПІШНИЙ ВХІД: Ховаємо авторизацію, показуємо панель!
         document.getElementById('auth-card').style.display = 'none';
         document.getElementById('main-panel').style.display = 'block';
         document.getElementById('user-nick').innerText = profile.nick || 'Модератор';
       }
     }
 
-    // Вихід з системи
     async function logout() {
-      await supabaseClient.auth.signOut();
+      try { await supabaseClient.auth.signOut(); } catch (err) {}
       document.getElementById('main-panel').style.display = 'none';
       document.getElementById('auth-card').style.display = 'block';
+      document.getElementById('password').value = '';
     }
   </script>
 </body>
