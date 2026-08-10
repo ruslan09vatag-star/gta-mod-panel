@@ -1,10 +1,6 @@
-const { createClient } = require('@supabase/supabase-js');
-
 const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
 const BOT_TOKEN = '8997988532:AAG6DFjrVDzkwZ7EX4gY_QGtEuUcAo9VNTc';
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 exports.handler = async (event) => {
   try {
@@ -34,11 +30,17 @@ exports.handler = async (event) => {
       }
 
       if (newStatus && userId) {
-        // 1. Оновлюємо статус у Supabase
-        await supabase
-          .from('profiles')
-          .update({ status: newStatus })
-          .eq('id', userId);
+        // 1. Оновлюємо статус у Supabase через REST API (без бібліотек)
+        await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
 
         // 2. Знімаємо завантаження з кнопки в Telegram
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
@@ -50,7 +52,7 @@ exports.handler = async (event) => {
           })
         });
 
-        // 3. Змінюємо текст у чаті та прибираємо кнопки
+        // 3. Оновлюємо текст у чаті та прибираємо кнопки
         const updatedText = `${oldText}\n\n<b>Статус:</b> ${statusText}`;
 
         await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
