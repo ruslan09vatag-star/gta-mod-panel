@@ -1,112 +1,12 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Авторизація | UGTA Moderation</title>
-  <!-- Підключаємо бібліотеку Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body {
-      background-color: #0f172a;
-      color: #ffffff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .auth-card {
-      background: #1e293b;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      width: 320px;
-      text-align: center;
-    }
-    .auth-card h2 { margin-bottom: 20px; }
-    .input-group { margin-bottom: 15px; text-align: left; }
-    .input-group label { display: block; font-size: 12px; margin-bottom: 5px; color: #94a3b8; }
-    .input-group input, .input-group select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #334155;
-      background: #0f172a;
-      color: #fff;
-      box-sizing: border-box;
-    }
-    .btn-primary {
-      width: 100%;
-      padding: 12px;
-      background: #3b82f6;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .btn-primary:hover { background: #2563eb; }
-    .btn-secondary {
-      width: 100%;
-      padding: 10px;
-      background: transparent;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      color: #94a3b8;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-    .btn-secondary:hover { background: #334155; color: white; }
-  </style>
-</head>
-<body>
-
-  <div class="auth-card">
-    <h2>Авторизація</h2>
-    
-    <div class="input-group">
-      <label>Email</label>
-      <input type="email" id="email" placeholder="admin@ukraine-gta.ua">
-    </div>
-
-    <div class="input-group">
-      <label>Пароль</label>
-      <input type="password" id="password" placeholder="••••••••">
-    </div>
-
-    <div class="input-group">
-      <label>Ігровий Нікнейм</label>
-      <input type="text" id="nick" placeholder="Руслан Мандарин">
-    </div>
-
-    <div class="input-group">
-      <label>Сервер</label>
-      <select id="server">
-        <option value="01 Сервер">01 Сервер</option>
-        <option value="02 Сервер" selected>02 Сервер</option>
-        <option value="03 Сервер">03 Сервер</option>
-        <option value="04 Сервер">04 Сервер</option>
-        <option value="05 Сервер">05 Сервер</option>
-        <option value="06 Сервер">06 Сервер</option>
-      </select>
-    </div>
-
-    <button class="btn-primary" onclick="login()">Увійти</button>
-    <button class="btn-secondary" onclick="register()">Створити акаунт</button>
-  </div>
-
-  <script>
+<script>
     // Налаштування Supabase та Telegram
     const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
     const BOT_TOKEN = '8997988532:AAG6DFjrVDzkwZ7EX4gY_QGtEuUcAo9VNTc';
     const ADMIN_CHAT_ID = '1841122025';
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // Змінено назву змінної з supabase на supabaseClient, щоб не було конфлікту!
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // Створення акаунту
     async function register() {
@@ -121,7 +21,7 @@
       }
 
       // 1. Реєстрація в Supabase Auth
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
       if (error) {
         alert("Помилка реєстрації: " + error.message);
@@ -131,7 +31,7 @@
       const userId = data.user.id;
 
       // 2. Збереження профілю у базі зі статусом 'pending'
-      const { error: dbError } = await supabase.from('profiles').insert([
+      const { error: dbError } = await supabaseClient.from('profiles').insert([
         { id: userId, nick: nick, server: server, email: email, status: 'pending' }
       ]);
 
@@ -180,7 +80,7 @@
         return;
       }
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
       if (error) {
         alert("Невірний email або пароль!");
@@ -188,7 +88,7 @@
       }
 
       // Перевірка статусу в базі
-      const { data: profile } = await supabase
+      const { data: profile } = await supabaseClient
         .from('profiles')
         .select('status')
         .eq('id', data.user.id)
@@ -196,16 +96,12 @@
 
       if (!profile || profile.status === 'pending') {
         alert("⏳ Твій акаунт ще на перевірці в адміністратора!");
-        await supabase.auth.signOut();
+        await supabaseClient.auth.signOut();
       } else if (profile.status === 'rejected') {
         alert("❌ Твоєї заявці відмовлено в доступі!");
-        await supabase.auth.signOut();
+        await supabaseClient.auth.signOut();
       } else if (profile.status === 'approved') {
         alert("✅ Успішний вхід!");
-        // Вкажи куди перенаправляти, наприклад:
-        // window.location.href = 'dashboard.html';
       }
     }
   </script>
-</body>
-</html>
