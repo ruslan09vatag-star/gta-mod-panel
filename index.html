@@ -91,7 +91,7 @@
       <input type="password" id="password" placeholder="••••••••">
     </div>
 
-    <!-- Поля для реєстрації -->
+    <!-- Поля тільки для реєстрації -->
     <div class="input-group register-only">
       <label>Ігровий Нікнейм</label>
       <input type="text" id="nick" placeholder="Руслан Мандарин">
@@ -155,7 +155,6 @@
     }
 
     async function handleAuth() {
-      // Вимикаємо кнопку під час обробки, щоб уникнути подвійного кліку
       const btn = document.getElementById('submit-btn');
       btn.disabled = true;
 
@@ -170,7 +169,7 @@
       }
     }
 
-    // 1. РЕЄСТРАЦІЯ
+    // 1. РЕЄСТРАЦІЯ: Надсилаємо заявку в ТГ ТІЛЬКИ ТУТ
     async function register() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
@@ -197,7 +196,7 @@
 
       const userId = data.user.id;
 
-      // Запис у базу Supabase з позначкою status = 'pending'
+      // Запис у базу Supabase
       const { error: dbError } = await supabaseClient.from('profiles').insert([
         { id: userId, nick: nick, server: server, email: email, status: 'pending' }
       ]);
@@ -207,15 +206,7 @@
         return;
       }
 
-      // Відправляємо в Telegram
-      await sendTelegramNotification(userId, nick, server, email);
-
-      alert("📧 Реєстрація успішна! Перевірте пошту для підтвердження, після чого очікуйте схвалення.");
-      toggleMode(false);
-    }
-
-    // Допоміжна функція відправки в Telegram
-    async function sendTelegramNotification(userId, nick, server, email) {
+      // Відправляємо 1 раз у Telegram
       const text = `📩 <b>Нова заявка на доступ!</b>\n\n` +
                    `👤 <b>Нік:</b> ${nick}\n` +
                    `🌐 <b>Сервер:</b> ${server}\n` +
@@ -241,9 +232,12 @@
           reply_markup: inlineKeyboard
         })
       });
+
+      alert("📧 Реєстрація успішна! Перевірте пошту для підтвердження, після чого очікуйте схвалення.");
+      toggleMode(false);
     }
 
-    // 2. ВХІД (Запити до Telegram API ТУТ ПОВНІСТЮ ВІДСУТНІ)
+    // 2. ВХІД: ЖОДНИХ ЗАПИТІВ ДО TELEGRAM
     async function login() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
@@ -262,7 +256,7 @@
 
       // Перевіряємо підтвердження пошти
       if (!data.user.email_confirmed_at) {
-        alert("❌ Ваша пошта ще не підтверджена! Перевірте скриньку.");
+        alert("❌ Ваша пошта ще не підтверджена! Перевірте поштову скриньку.");
         await supabaseClient.auth.signOut();
         return;
       }
@@ -275,7 +269,7 @@
         .single();
 
       if (!profile || profile.status === 'pending') {
-        alert("⏳ Ваша заявка очікує підтвердження адміністратором у Telegram!");
+        alert("⏳ Ваша пошта підтверджена, але заявка ще очікує схвалення адміністратора в Telegram!");
         await supabaseClient.auth.signOut();
       } else if (profile.status === 'rejected') {
         alert("❌ Твоєї заявці відмовлено в доступі!");
