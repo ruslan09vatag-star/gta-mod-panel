@@ -155,14 +155,22 @@
     }
 
     async function handleAuth() {
-      if (isRegisterMode) {
-        await register();
-      } else {
-        await login();
+      // Вимикаємо кнопку під час обробки, щоб уникнути подвійного кліку
+      const btn = document.getElementById('submit-btn');
+      btn.disabled = true;
+
+      try {
+        if (isRegisterMode) {
+          await register();
+        } else {
+          await login();
+        }
+      } finally {
+        btn.disabled = false;
       }
     }
 
-    // 1. РЕЄСТРАЦІЯ (Повідомлення в ТГ відправляється ТІЛЬКИ ТУТ і 1 раз)
+    // 1. РЕЄСТРАЦІЯ
     async function register() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
@@ -189,7 +197,7 @@
 
       const userId = data.user.id;
 
-      // Запис у базу Supabase
+      // Запис у базу Supabase з позначкою status = 'pending'
       const { error: dbError } = await supabaseClient.from('profiles').insert([
         { id: userId, nick: nick, server: server, email: email, status: 'pending' }
       ]);
@@ -199,7 +207,15 @@
         return;
       }
 
-      // НАДСИЛАЄМО ЗАЯВКУ В ТЕЛЕГРАМ (Лише 1 раз при реєстрації)
+      // Відправляємо в Telegram
+      await sendTelegramNotification(userId, nick, server, email);
+
+      alert("📧 Реєстрація успішна! Перевірте пошту для підтвердження, після чого очікуйте схвалення.");
+      toggleMode(false);
+    }
+
+    // Допоміжна функція відправки в Telegram
+    async function sendTelegramNotification(userId, nick, server, email) {
       const text = `📩 <b>Нова заявка на доступ!</b>\n\n` +
                    `👤 <b>Нік:</b> ${nick}\n` +
                    `🌐 <b>Сервер:</b> ${server}\n` +
@@ -225,12 +241,9 @@
           reply_markup: inlineKeyboard
         })
       });
-
-      alert("📧 Реєстрація успішна! Перевірте пошту для підтвердження, після чого очікуйте схвалення.");
-      toggleMode(false);
     }
 
-    // 2. ВХІД (Нічого в Telegram НЕ відправляється)
+    // 2. ВХІД (Запити до Telegram API ТУТ ПОВНІСТЮ ВІДСУТНІ)
     async function login() {
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
@@ -247,14 +260,14 @@
         return;
       }
 
-      // Перевіряємо, чи підтвердив пошту
+      // Перевіряємо підтвердження пошти
       if (!data.user.email_confirmed_at) {
         alert("❌ Ваша пошта ще не підтверджена! Перевірте скриньку.");
         await supabaseClient.auth.signOut();
         return;
       }
 
-      // Перевірка статусу з бази
+      // Отримуємо статус з Supabase
       const { data: profile } = await supabaseClient
         .from('profiles')
         .select('*')
