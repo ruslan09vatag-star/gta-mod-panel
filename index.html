@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Панель Модерації UKRAINE GTA</title>
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg-color: #0f141e;
+      --card-bg: #161c28;
+      --text: #ffffff;
+      --text-muted: #8a99af;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --status-red: #ef4444;
+      --status-green: #22c55e;
+      --status-purple: #a855f7;
+      --border: #232b3b;
+      --btn-active: #1f2738;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text); min-height: 100vh; padding: 20px; }
+
+    .auth-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); display: flex; align-items: center; justify-content: center; z-index: 999; }
+    .auth-box { background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border); width: 100%; max-width: 400px; }
+    .auth-box h2 { margin-bottom: 20px; text-align: center; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border); border-radius: 8px; color: white; outline: none; }
+
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; color: white; background: var(--accent); }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-stop { background: var(--status-red) !important; }
+
+    .server-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 36px; font-weight: 900; font-style: italic; font-size: 0.85rem; color: white;
+      clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+    }
+    .s-01 { background: linear-gradient(135deg, #ff9d00 50%, #ff6200 50%); }
+    .s-02 { background: linear-gradient(135deg, #00c6ff 50%, #0072ff 50%); }
+    .s-03 { background: linear-gradient(135deg, #28d052 50%, #109335 50%); }
+    .s-04 { background: linear-gradient(135deg, #7b2cbf 50%, #5a189a 50%); }
+    .s-05 { background: linear-gradient(135deg, #f72585 50%, #b5179e 50%); }
+    .s-06 { background: linear-gradient(135deg, #00f5d4 50%, #00bbf9 50%); }
+    .s-07 { background: linear-gradient(135deg, #4361ee 50%, #3f37c9 50%); }
+
+    .container { max-width: 1250px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
+    .top-nav { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; }
+    .nav-left { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+    .profile-info { display: flex; align-items: center; gap: 12px; background: var(--card-bg); padding: 6px 16px 6px 8px; border-radius: 10px; border: 1px solid var(--border); }
+    .nav-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .nav-tab { background: none; border: none; padding: 8px 16px; border-radius: 20px; color: var(--text-muted); font-weight: 500; cursor: pointer; transition: 0.2s; }
+    .nav-tab.active { background: var(--btn-active); color: white; border: 1px solid var(--border); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .status-panel { background: var(--card-bg); border-radius: 12px; padding: 25px; border: 1px solid var(--border); }
+    .status-line { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .status-text { font-weight: 700; color: var(--status-red); }
+    .status-text.active { color: var(--status-green); }
+
+    .shift-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .shift-card { background: var(--bg-color); border-radius: 10px; padding: 20px; border: 1px solid var(--border); }
+    .time-val { font-size: 2.2rem; font-weight: 700; margin-top: 10px; font-family: monospace; }
+
+    .filter-bar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-select { background: var(--card-bg); color: white; padding: 10px 15px; border: 1px solid var(--border); border-radius: 8px; outline: none; }
+
+    table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+    th, td { padding: 14px 18px; text-align: left; border-bottom: 1px solid var(--border); }
+    th { color: var(--text-muted); font-size: 0.85rem; background: var(--btn-active); }
+
+    .type-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; display: inline-block; }
+    .badge-norma { background: #22c55e22; color: #22c55e; border: 1px solid #22c55e44; }
+    .badge-overnorma { background: #a855f722; color: #a855f7; border: 1px solid #a855f744; }
+  </style>
+</head>
+<body>
+
+  <!-- Auth Screen -->
+  <div class="auth-overlay" id="authScreen">
+    <div class="auth-box">
+      <h2>Авторизація</h2>
+      <form onsubmit="handleAuth(event)">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="email" required placeholder="admin@ukraine-gta.ua">
+        </div>
+        <div class="form-group">
+          <label>Пароль</label>
+          <input type="password" id="pass" required placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label>Ігровий Нікнейм</label>
+          <input type="text" id="nick" placeholder="Руслан Мандарин (при реєстрації)">
+        </div>
+        <div class="form-group">
+          <label>Сервер</label>
+          <select id="serverSelect">
+            <option value="01">01 Сервер</option>
+            <option value="02" selected>02 Сервер</option>
+            <option value="03">03 Сервер</option>
+            <option value="04">04 Сервер</option>
+            <option value="05">05 Сервер</option>
+            <option value="06">06 Сервер</option>
+            <option value="07">07 Сервер</option>
+          </select>
+        </div>
+        <button type="submit" class="btn" style="margin-bottom: 10px;">Увійти</button>
+        <button type="button" class="btn" style="background: transparent; border: 1px solid var(--border);" onclick="toggleAuthMode(this)">Створити акаунт</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="container" id="dashboard" style="display: none;">
+    <div class="top-nav">
+      <div class="nav-left">
+        <div class="profile-info">
+          <div class="server-badge s-02" id="profileBadge">02</div>
+          <div>
+            <div style="font-weight: 700; font-size: 0.95rem;" id="profileNick">Завантаження...</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Модератор</div>
+          </div>
+        </div>
+
+        <div class="nav-tabs">
+          <button class="nav-tab active" onclick="tab('panelTab', this)">Панель</button>
+          <button class="nav-tab" onclick="tab('leaderTab', this)">Лідерборд</button>
+        </div>
+      </div>
+
+      <button class="btn" style="width: auto; padding: 8px 16px; background: transparent; border: 1px solid var(--border);" onclick="logout()">Вийти</button>
+    </div>
+
+    <!-- TAB 1: PANEL -->
+    <div id="panelTab" class="tab-content active">
+      <h1 style="font-size: 1.8rem; margin-bottom: 15px;">Панель модерації</h1>
+      
+      <div class="status-panel">
+        <div class="status-line">
+          <div>Статус: <span class="status-text" id="statusText">Не на зміні</span></div>
+          <button class="btn" id="shiftBtn" style="width: auto; padding: 10px 25px;" onclick="toggleShift()">Почати зміну</button>
+        </div>
+
+        <div class="shift-grid">
+          <div class="shift-card">
+            <div style="color: var(--text-muted); font-size: 0.85rem;">Поточна зміна</div>
+            <div class="time-val" id="todayTimer">00:00:00</div>
+          </div>
+          <div class="shift-card">
+            <div style="color: var(--text-muted); font-size: 0.85rem;">Загалом відпрацьовано</div>
+            <div class="time-val" id="totalTimeDisplay">00:00:00</div>
+          </div>
+        </div>
+      </div>
+
+      <h2 style="font-size: 1.3rem; margin-top: 30px; margin-bottom: 15px;">Останні зміни</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Дата та час</th>
+            <th>Тривалість</th>
+            <th>Тип зміни</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody id="recentShiftsBody"></tbody>
+      </table>
+    </div>
+
+    <!-- TAB 2: LEADERBOARD -->
+    <div id="leaderTab" class="tab-content">
+      <h1 style="font-size: 1.8rem; margin-bottom: 15px;">Лідерборд модераторів</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Сервер</th>
+            <th>Модератор</th>
+            <th>Загальний час</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // --- ПІДКТЮЧЕННЯ ДО SUPABASE ---
+    const SUPABASE_URL = 'ТВІЙ_SUPABASE_URL';
+    const SUPABASE_KEY = 'ТВІЙ_SUPABASE_ANON_KEY';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let isRegisterMode = false;
+    let currentUser = null;
+    let isWorking = false;
+    let timerInterval = null;
+    let currentSeconds = 0;
+
+    function toggleAuthMode(btn) {
+      isRegisterMode = !isRegisterMode;
+      btn.innerText = isRegisterMode ? "Вже є акаунт? Увійти" : "Створити акаунт";
+      document.querySelector('.auth-box h2').innerText = isRegisterMode ? "Реєстрація" : "Авторизація";
+    }
+
+    async function handleAuth(e) {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('pass').value;
+      const nick = document.getElementById('nick').value;
+      const server = document.getElementById('serverSelect').value;
+
+      if (isRegisterMode) {
+        const { data, error } = await supabase.auth.signUp({
+          email, password,
+          options: { data: { nick, server } }
+        });
+        if (error) return alert("Помилка реєстрації: " + error.message);
+        alert("Реєстрація успішна!");
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) return alert("Помилка входу: " + error.message);
+      }
+
+      checkSession();
+    }
+
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        currentUser = session.user;
+        document.getElementById('profileNick').innerText = currentUser.user_metadata.nick || currentUser.email;
+        const server = currentUser.user_metadata.server || '01';
+        document.getElementById('profileBadge').innerText = server;
+        document.getElementById('profileBadge').className = `server-badge s-${server}`;
+
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'flex';
+        
+        fetchUserStats();
+        fetchLeaderboard();
+      }
+    }
+
+    async function logout() {
+      await supabase.auth.signOut();
+      location.reload();
+    }
+
+    function tab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function toggleShift() {
+      const btn = document.getElementById('shiftBtn');
+      const statusText = document.getElementById('statusText');
+
+      if (!isWorking) {
+        isWorking = true;
+        btn.innerText = "Завершити зміну";
+        btn.classList.add('btn-stop');
+        statusText.innerText = "На зміні";
+        statusText.classList.add('active');
+
+        timerInterval = setInterval(() => {
+          currentSeconds++;
+          document.getElementById('todayTimer').innerText = formatTime(currentSeconds);
+        }, 1000);
+      } else {
+        isWorking = false;
+        clearInterval(timerInterval);
+
+        if (currentSeconds < 3600) {
+          alert("⚠️ Зміна менше 1 години не зараховується!");
+        } else {
+          saveShiftToCloud(currentSeconds);
+        }
+
+        currentSeconds = 0;
+        document.getElementById('todayTimer').innerText = "00:00:00";
+        btn.innerText = "Почати зміну";
+        btn.classList.remove('btn-stop');
+        statusText.innerText = "Не на зміні";
+        statusText.classList.remove('active');
+      }
+    }
+
+    async function saveShiftToCloud(seconds) {
+      const shiftType = seconds >= 9000 ? "Перенорма" : "Норма";
+      const { error } = await supabase.from('shifts').insert([{
+        user_id: currentUser.id,
+        nick: currentUser.user_metadata.nick,
+        server: currentUser.user_metadata.server,
+        duration_seconds: seconds,
+        shift_type: shiftType
+      }]);
+
+      if (error) alert("Помилка збереження зміни: " + error.message);
+      else {
+        fetchUserStats();
+        fetchLeaderboard();
+      }
+    }
+
+    async function fetchUserStats() {
+      const { data, error } = await supabase.from('shifts').select('*').eq('user_id', currentUser.id);
+      if (!data) return;
+
+      let totalSecs = data.reduce((acc, curr) => acc + curr.duration_seconds, 0);
+      document.getElementById('totalTimeDisplay').innerText = formatTime(totalSecs);
+
+      const tbody = document.getElementById('recentShiftsBody');
+      tbody.innerHTML = '';
+      data.slice(-5).reverse().forEach(shift => {
+        let badge = shift.shift_type === 'Перенорма' ? 'badge-overnorma' : 'badge-norma';
+        tbody.innerHTML += `<tr>
+          <td>${new Date(shift.created_at).toLocaleString('uk-UA')}</td>
+          <td><strong>${formatTime(shift.duration_seconds)}</strong></td>
+          <td><span class="type-badge ${badge}">${shift.shift_type}</span></td>
+          <td><span style="color: var(--status-green);">Зараховано</span></td>
+        </tr>`;
+      });
+    }
+
+    async function fetchLeaderboard() {
+      const { data, error } = await supabase.from('shifts').select('nick, server, duration_seconds');
+      if (!data) return;
+
+      let summary = {};
+      data.forEach(item => {
+        let key = `${item.nick}_${item.server}`;
+        if (!summary[key]) summary[key] = { nick: item.nick, server: item.server, totalSecs: 0 };
+        summary[key].totalSecs += item.duration_seconds;
+      });
+
+      let list = Object.values(summary).sort((a,b) => b.totalSecs - a.totalSecs);
+      const tbody = document.getElementById('leaderboardBody');
+      tbody.innerHTML = '';
+      list.forEach((item, index) => {
+        tbody.innerHTML += `<tr>
+          <td><strong>${index + 1}</strong></td>
+          <td><div class="server-badge s-${item.server}">${item.server}</div></td>
+          <td>${item.nick}</td>
+          <td><strong>${formatTime(item.totalSecs)}</strong></td>
+        </tr>`;
+      });
+    }
+
+    function formatTime(sec) {
+      let hrs = Math.floor(sec / 3600).toString().padStart(2, '0');
+      let mins = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
+      let secs = (sec % 60).toString().padStart(2, '0');
+      return `${hrs}:${mins}:${secs}`;
+    }
+
+    // Run on load
+    checkSession();
+  </script>
+</body>
+</html>
