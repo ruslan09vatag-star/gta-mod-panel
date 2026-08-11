@@ -103,7 +103,7 @@
           </div>
         </div>
         <div class="dropdown-menu">
-          <button class="dropdown-item" onclick="openSettingsModal()">Налаштування</button>
+          <button class="dropdown-item" onclick="openSettingsModal()">Налаштування</>
         </div>
       </div>
 
@@ -275,12 +275,19 @@
       const allData = await getAllShifts();
       const shifts = allData.filter(s => s.nick && s.nick.toLowerCase() === nick.toLowerCase());
       
+      // Сортуємо зміни: спочатку найновіші (за ID або часом створення у базі даних)
+      shifts.sort((a, b) => {
+        // Якщо є поле created_at або id, сортуємо за ним від більшого до меншого
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : (a.id || 0);
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : (b.id || 0);
+        return timeB - timeA;
+      });
+
       const historyList = document.getElementById('historyList');
       if (shifts.length === 0) { 
         historyList.innerHTML = `<div style="color: #8b949e; font-size: 13px;">Ще немає завершених змін.</div>`; 
       } else {
-        // Зворотне сортування: найновіші зверху (використовуємо .reverse() перед виведенням)
-        historyList.innerHTML = shifts.slice().reverse().slice(0, 10).map(shift => {
+        historyList.innerHTML = shifts.slice(0, 10).map(shift => {
           const h = Math.floor(shift.duration_seconds / 3600);
           const m = Math.floor((shift.duration_seconds % 3600) / 60);
           const s = shift.duration_seconds % 60;
