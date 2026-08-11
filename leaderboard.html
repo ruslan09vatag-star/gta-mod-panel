@@ -2,39 +2,45 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Лідерборд — UGTA</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
     body { background-color: #0b0e14; color: #c9d1d9; padding: 40px; }
     .main-container { max-width: 900px; margin: 0 auto; }
     
-    h1 { color: #fff; margin-bottom: 20px; }
+    .back-link { color: #58a6ff; text-decoration: none; display: inline-block; margin-bottom: 20px; font-weight: 500; transition: 0.2s; }
+    .back-link:hover { text-decoration: underline; }
 
-    /* Таби періодів */
+    h1 { color: #fff; margin-bottom: 20px; font-size: 26px; font-weight: 700; }
+
+    /* Таби періодів з анімацією */
     .tabs { display: flex; gap: 10px; margin-bottom: 30px; }
-    .tab-btn { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; }
+    .tab-btn { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; font-size: 14px; }
     .tab-btn:hover { background: #1f293d; color: #fff; transform: translateY(-2px); }
-    .tab-btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; box-shadow: 0 4px 15px rgba(31,111,235,0.3); }
+    .tab-btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; box-shadow: 0 4px 15px rgba(31,111,235,0.3); transform: translateY(-2px); }
 
     /* Таблиця */
-    .table { width: 100%; border-collapse: collapse; background: #121721; border-radius: 12px; overflow: hidden; border: 1px solid #1e2638; }
-    .table th, .table td { padding: 16px; text-align: left; border-bottom: 1px solid #1e2638; }
-    .table th { color: #8b949e; font-size: 13px; }
-    .rank-cell { font-weight: 700; color: #58a6ff; }
-    .time-cell { font-family: monospace; font-weight: 600; color: #3fb950; }
+    .table { width: 100%; border-collapse: collapse; background: #121721; border-radius: 12px; overflow: hidden; border: 1px solid #1e2638; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .table th, .table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid #1e2638; font-size: 14px; }
+    .table th { color: #8b949e; font-size: 13px; font-weight: 600; background: #161b22; }
+    .rank-cell { font-weight: 700; color: #58a6ff; width: 60px; }
+    .time-cell { font-family: monospace; font-weight: 600; color: #3fb950; font-size: 15px; }
+    .server-badge { background: #1f293d; color: #58a6ff; padding: 2px 8px; border-radius: 6px; border: 1px solid #30363d; font-size: 12px; font-weight: 500; }
+    .empty-row { text-align: center; color: #8b949e; padding: 30px !important; }
   </style>
 </head>
 <body>
 
   <div class="main-container">
-    <a href="index.html" style="color: #58a6ff; text-decoration: none; margin-bottom: 10px; display: inline-block;">← Повернутися назад</a>
-    <h1>Лідерборд</h1>
+    <a href="index.html" class="back-link">← Повернутися до панелі</a>
+    <h1>Лідерборд модераторів</h1>
 
     <div class="tabs">
-      <button class="tab-btn active" onclick="loadLeaderboard('today')">Сьогодні</button>
-      <button class="tab-btn" onclick="loadLeaderboard('week')">Тиждень</button>
-      <button class="tab-btn" onclick="loadLeaderboard('month')">Місяць</button>
+      <button class="tab-btn active" onclick="loadLeaderboard('today', event)">Сьогодні</button>
+      <button class="tab-btn" onclick="loadLeaderboard('week', event)">Тиждень</button>
+      <button class="tab-btn" onclick="loadLeaderboard('month', event)">Місяць</button>
     </div>
 
     <table class="table">
@@ -47,62 +53,75 @@
         </tr>
       </thead>
       <tbody id="leaderboardBody">
-        <!-- Дані будуть тут -->
+        <!-- Дані завантажуються динамічно -->
       </tbody>
     </table>
   </div>
 
   <script>
-    const currentUser = JSON.parse(localStorage.getItem('ugta_current_user')) || { nick: 'Гість', server: '02' };
-
-    function loadLeaderboard(period) {
-      // Активуємо кнопку
+    function loadLeaderboard(period, event) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
 
-      const tbody = document.getElementById('leaderboardBody');
-      tbody.innerHTML = '';
-
-      // Збираємо дані (тут ми беремо дані нашого користувача)
-      const shifts = JSON.parse(localStorage.getItem('ugta_shifts_' + currentUser.nick) || '[]');
+      const data = JSON.parse(localStorage.getItem('ugta_all_shifts_data') || '[]');
       const now = new Date();
-      let totalSeconds = 0;
+      const todayStr = now.toISOString().split('T')[0];
 
-      shifts.forEach(shift => {
+      // Групуємо час за ніками та серверами
+      const stats = {};
+
+      data.forEach(shift => {
         const shiftDate = new Date(shift.date);
-        let include = false;
+        let match = false;
 
         if (period === 'today') {
-          include = shift.date === now.toISOString().split('T')[0];
+          match = (shift.date === todayStr);
         } else if (period === 'week') {
-          const diff = (now - shiftDate) / (1000 * 60 * 60 * 24);
-          include = diff <= 7;
+          const diffDays = (now - shiftDate) / (1000 * 60 * 60 * 24);
+          match = (diffDays >= 0 && diffDays <= 7);
         } else if (period === 'month') {
-          include = shiftDate.getMonth() === now.getMonth();
+          match = (shiftDate.getMonth() === now.getMonth() && shiftDate.getFullYear() === now.getFullYear());
         }
 
-        if (include) totalSeconds += shift.duration_seconds;
+        if (match) {
+          if (!stats[shift.nick]) {
+            stats[shift.nick] = { time: 0, server: shift.server };
+          }
+          stats[shift.nick].time += shift.duration_seconds;
+        }
       });
 
-      // Відображаємо
-      tbody.innerHTML = `
-        <tr>
-          <td class="rank-cell">1</td>
-          <td>${currentUser.nick}</td>
-          <td>${currentUser.server}</td>
-          <td class="time-cell">${formatTime(totalSeconds)}</td>
-        </tr>
-      `;
+      // Сортуємо учасників за кількістю часу (від найбільшого до найменшого)
+      const sortedUsers = Object.keys(stats).sort((a, b) => stats[b].time - stats[a].time);
+
+      const tbody = document.getElementById('leaderboardBody');
+
+      if (sortedUsers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="empty-row">За цей період ще немає даних про завершені зміни.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = sortedUsers.map((nick, index) => {
+        const userStats = stats[nick];
+        const sec = userStats.time;
+        const h = Math.floor(sec / 3600);
+        const m = Math.floor((sec % 3600) / 60);
+        const s = sec % 60;
+        const timeFormatted = `${h} год ${m} хв ${s} сек`;
+
+        return `
+          <tr>
+            <td class="rank-cell">#${index + 1}</td>
+            <td><b>${nick}</b></td>
+            <td><span class="server-badge">Сервер ${userStats.server}</span></td>
+            <td class="time-cell">${timeFormatted}</td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    function formatTime(sec) {
-      const h = Math.floor(sec / 3600);
-      const m = Math.floor((sec % 3600) / 60);
-      return `${h} год ${m} хв`;
-    }
-
-    // Завантажити за замовчуванням
-    loadLeaderboard('today');
+    // Завантажуємо таблицю для вкладки "Сьогодні" під час відкриття сторінки
+    loadLeaderboard('today', { target: document.querySelector('.tab-btn') });
   </script>
 </body>
 </html>
