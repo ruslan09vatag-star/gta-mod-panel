@@ -35,6 +35,7 @@
     .btn-start:hover { background-color: #2ea043; }
     .btn-end { background-color: #da3633; }
     .btn-end:hover { background-color: #e5534b; }
+    .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .stats-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px; }
     .stat-box { background: #121721; border: 1px solid #1e2638; padding: 18px; border-radius: 12px; }
@@ -169,24 +170,31 @@
       } else {
         const durationSec = Math.max(1, Math.floor((currentTime - shiftStartTime) / 1000));
         
-        // Зберігаємо зміну в Firebase
-        await saveShift({
-          nick: nick,
-          server: server,
-          role: role,
-          date: todayStr,
-          duration_seconds: durationSec
-        });
+        // Блокуємо кнопку на час збереження
+        shiftToggleBtn.disabled = true;
+        shiftToggleBtn.textContent = 'Збереження...';
 
-        // Повністю скидаємо статус
+        // Миттєво очищаємо локальну пам'ять і змінюємо статус
         isOnDuty = false;
         shiftStartTime = 0;
         localStorage.removeItem('ugta_is_on_duty_' + nick);
         localStorage.removeItem('ugta_shift_start_' + nick);
-        
-        // Оновлюємо інтерфейс і історію
         updateShiftUI();
-        loadShiftsHistory();
+
+        try {
+          await saveShift({
+            nick: nick,
+            server: server,
+            role: role,
+            date: todayStr,
+            duration_seconds: durationSec
+          });
+        } catch (error) {
+          console.error("Помилка збереження зміни:", error);
+        } finally {
+          shiftToggleBtn.disabled = false;
+          loadShiftsHistory();
+        }
       }
     }
 
