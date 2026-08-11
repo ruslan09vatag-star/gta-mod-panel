@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA6gSnuDVHlP0OnnCdACckeJTME07vDT2E",
@@ -14,6 +14,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const COLLECTION_NAME = "ugta_shifts";
+
+// Стандартна функція отримання всіх змін (щоб не було помилок в інших файлах)
+export async function getAllShifts() {
+  try {
+    const querySnapshot = await getDocs(collection(db, COLLECTION_NAME));
+    const shifts = [];
+    querySnapshot.forEach((doc) => {
+      shifts.push({ id: doc.id, ...doc.data() });
+    });
+    return shifts;
+  } catch (e) {
+    console.error("Помилка завантаження змін: ", e);
+    return [];
+  }
+}
 
 // Функція реального часу для відстеження змін
 export function subscribeToShifts(callback) {
