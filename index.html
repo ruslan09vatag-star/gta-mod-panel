@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UGTA Moderation Panel</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,800;1,900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -156,32 +156,28 @@
     .role-zktp { background: #3d2b1e; color: #d29922; border: 1px solid rgba(210, 153, 34, 0.3); }
     .role-ktp { background: #3d1e1e; color: #f85149; border: 1px solid rgba(248, 81, 73, 0.3); }
 
-    /* === ВІДТВОРЕННЯ ОРИГІНАЛЬНОГО ЛОГОТИПА ЩИТА ЧЕРЕЗ CSS === */
-    .ugta-server-shield {
-      background: #000000;
+    /* === ТОЧНИЙ ДИЗАЙН ЩИТА "Серв XX" ЯК НА ФОТО === */
+    .ugta-shield {
+      background-color: #000000;
       color: #ffffff;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 6px 10px 10px 10px;
-      clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+      padding: 6px 14px 10px 14px;
+      width: 100px;
+      height: 32px;
+      clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
+      font-family: 'Inter', sans-serif;
       font-style: italic;
       font-weight: 900;
+      font-size: 13px;
+      letter-spacing: -0.2px;
       user-select: none;
-      line-height: 1;
-      border-top: 1px solid #333;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
 
-    .ugta-server-shield .txt-serv {
-      font-size: 11px;
-      letter-spacing: -0.5px;
-      margin-right: 3px;
-      color: #ffffff;
-    }
-
-    .ugta-server-shield .txt-num {
-      font-size: 12px;
-      color: #ffffff;
+    .ugta-shield .srv-txt {
+      margin-right: 4px;
     }
 
     .profile-dropdown {
@@ -475,13 +471,13 @@
     const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
     const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-    // ГЕНЕРАЦІЯ ОРИГІНАЛЬНОГО ЛОГОТИПА ЧЕРЕЗ CSS
+    // ГЕНЕРАЦІЯ ЛОГОТИПА ЩИТА ЯК НА СКТНІШОТІ
     function getServerLogoHTML(serverNum) {
       const numStr = String(serverNum).padStart(2, '0');
       return `
-        <div class="ugta-server-shield">
-          <span class="txt-serv">Серв</span>
-          <span class="txt-num">${numStr}</span>
+        <div class="ugta-shield">
+          <span class="srv-txt">Серв</span>
+          <span>${numStr}</span>
         </div>
       `;
     }
