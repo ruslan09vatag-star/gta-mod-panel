@@ -103,7 +103,7 @@
           </div>
         </div>
         <div class="dropdown-menu">
-          <button class="dropdown-item" onclick="openSettingsModal()">Налаштування</>
+          <button class="dropdown-item" onclick="openSettingsModal()">Налаштування</button>
         </div>
       </div>
 
@@ -251,7 +251,8 @@
             server: server,
             role: role,
             date: todayStr,
-            duration_seconds: durationSec
+            duration_seconds: durationSec,
+            created_at: new Date().toISOString() // Зберігаємо точний час завершення зміни
           });
           isSaved = true;
         } catch (error) {
@@ -275,12 +276,15 @@
       const allData = await getAllShifts();
       const shifts = allData.filter(s => s.nick && s.nick.toLowerCase() === nick.toLowerCase());
       
-      // Сортуємо зміни: спочатку найновіші (за ID або часом створення у базі даних)
+      // Залізобетонне сортування за часом створення (від найновіших до найстаріших) за допомогою `created_at` або `id`
       shifts.sort((a, b) => {
-        // Якщо є поле created_at або id, сортуємо за ним від більшого до меншого
         const timeA = a.created_at ? new Date(a.created_at).getTime() : (a.id || 0);
         const timeB = b.created_at ? new Date(b.created_at).getTime() : (b.id || 0);
-        return timeB - timeA;
+        
+        if (timeA !== timeB) {
+          return timeB - timeA; // Новіші (більший час/ID) будуть зверху
+        }
+        return (b.id || 0) - (a.id || 0);
       });
 
       const historyList = document.getElementById('historyList');
@@ -291,7 +295,18 @@
           const h = Math.floor(shift.duration_seconds / 3600);
           const m = Math.floor((shift.duration_seconds % 3600) / 60);
           const s = shift.duration_seconds % 60;
-          return `<div class="history-item"><span class="history-date">Дата: <b>${shift.date}</b></span><span class="history-duration">${h}г ${m}хв ${s}с</span></div>`;
+          
+          // Форматування точного часу завершення (якщо є в базі)
+          let timeFormatted = '';
+          if (shift.created_at) {
+            const shiftDateObj = new Date(shift.created_at);
+            const hh = String(shiftDateObj.getHours()).padStart(2, '0');
+            const mm = String(shiftDateObj.getMinutes()).padStart(2, '0');
+            const ss = String(shiftDateObj.getSeconds()).padStart(2, '0');
+            timeFormatted = ` о ${hh}:${mm}:${ss}`;
+          }
+
+          return `<div class="history-item"><span class="history-date">Дата: <b>${shift.date}${timeFormatted}</b></span><span class="history-duration">${h}г ${m}хв ${s}с</span></div>`;
         }).join('');
       }
 
