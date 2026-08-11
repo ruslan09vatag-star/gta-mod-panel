@@ -2,56 +2,177 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <title>UGTA Moderation Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Панель модерації — UGTA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { background: #0b0e14; color: #fff; font-family: sans-serif; padding: 20px; }
-    .nav { display: flex; gap: 10px; margin-bottom: 20px; }
-    button { padding: 10px 20px; background: #1f6feb; border: none; color: #fff; border-radius: 6px; cursor: pointer; }
-    .card { background: #121721; padding: 20px; border-radius: 12px; border: 1px solid #1e2638; margin-bottom: 20px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: #0b0e14; color: #c9d1d9; min-height: 100vh; padding: 20px 40px; }
+    .main-container { max-width: 1200px; margin: 0 auto; }
+
+    /* Верхня навігаційна панель */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; background: #121721; border: 1px solid #1e2638; padding: 12px 24px; border-radius: 12px; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+    .user-info { display: flex; align-items: center; gap: 12px; }
+    .user-avatar { background: #f78166; color: #fff; font-weight: 700; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px; }
+    .user-name { font-weight: 600; color: #fff; font-size: 15px; }
+    .user-role { background: #21262d; color: #8b949e; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
+    
+    .nav-links { display: flex; gap: 8px; align-items: center; }
+    .nav-btn { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: 0.2s; }
+    .nav-btn:hover, .nav-btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+    .logout-btn { background: #da3633 !important; border-color: #f85149 !important; }
+
+    /* Основний вміст */
+    h1 { color: #fff; font-size: 26px; font-weight: 700; margin-bottom: 20px; }
+    
+    .status-card { background: #121721; border: 1px solid #1e2638; padding: 24px; border-radius: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; }
+    .status-text { font-size: 16px; font-weight: 500; }
+    .status-badge { font-weight: 700; }
+    .status-badge.off { color: #f85149; }
+    .status-badge.on { color: #3fb950; }
+
+    .action-btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; color: #fff; }
+    .btn-start { background-color: #238636; }
+    .btn-start:hover { background-color: #2ea043; }
+    .btn-end { background-color: #da3633; }
+    .btn-end:hover { background-color: #e5534b; }
+
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .stat-box { background: #121721; border: 1px solid #1e2638; padding: 24px; border-radius: 12px; }
+    .stat-title { color: #8b949e; font-size: 14px; margin-bottom: 8px; }
+    .stat-date { color: #8b949e; font-size: 12px; margin-bottom: 12px; }
+    .stat-time { font-size: 28px; font-weight: 700; color: #fff; font-family: monospace; }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      body { padding: 10px; }
+    }
   </style>
 </head>
 <body>
 
-  <div class="nav">
-    <button onclick="showSection('panel')">Панель</button>
-    <button onclick="showSection('leaderboard')">Лідерборд</button>
-    <button onclick="logout()">Вийти</button>
-  </div>
+  <div class="main-container">
+    <!-- Навігація в стилі скріншота -->
+    <div class="top-bar">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">05</div>
+        <div>
+          <div class="user-name" id="userName">Завантаження...</div>
+          <span class="user-role" id="userRole">S.M</span>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="index.html" class="nav-btn active">Панель</a>
+        <a href="#" class="nav-btn" onclick="alert('Розділ у розробці')">Усі посилання</a>
+        <a href="#" class="nav-btn" onclick="alert('Розділ у розробці')">Лідерборд</a>
+        <a href="#" class="nav-btn" onclick="alert('Розділ у розробці')">Посібник</a>
+        <a href="#" class="nav-btn logout-btn" onclick="logout()">Вийти</a>
+      </div>
+    </div>
 
-  <div id="panel" class="card">
-    <h1>Особистий кабінет</h1>
-    <div id="userInfo">Завантаження даних...</div>
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #1e2638;">
-    <h3>Здати зміну</h3>
-    <input type="number" id="shiftDuration" placeholder="Час у хвилинах" style="padding:10px; border-radius:6px; border:none;">
-    <button onclick="submitShift()">Відправити</button>
-  </div>
+    <h1>Панель модерації</h1>
 
-  <div id="leaderboard" class="card" style="display:none;">
-    <h1>Лідерборд</h1>
-    <div id="lbData">Дані лідерборду...</div>
+    <!-- Статус та кнопка зміни -->
+    <div class="status-card">
+      <div class="status-text">
+        Статус: <span id="statusBadge" class="status-badge off">Не на зміні</span>
+      </div>
+      <button id="shiftToggleBtn" class="action-btn btn-start" onclick="toggleShift()">Почати зміну</button>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-title">Сьогодні</div>
+        <div class="stat-date" id="todayDate">----.--.--</div>
+        <div class="stat-time" id="todayTime">00:00:00</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-title">Вчора</div>
+        <div class="stat-date" id="yesterdayDate">----.--.--</div>
+        <div class="stat-time" id="yesterdayTime">00:00:00</div>
+      </div>
+    </div>
   </div>
 
   <script>
     const dbClient = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
 
-    // Перевірка авторизації
     const currentUser = JSON.parse(localStorage.getItem('ugta_current_user'));
-    if (!currentUser) window.location.href = 'login.html';
-    
-    document.getElementById('userInfo').innerHTML = `Вітаємо, <b>${currentUser.nick}</b>! Акаунт: ${currentUser.account_number}`;
-
-    function showSection(id) {
-      document.getElementById('panel').style.display = id === 'panel' ? 'block' : 'none';
-      document.getElementById('leaderboard').style.display = id === 'leaderboard' ? 'block' : 'none';
+    if (!currentUser) {
+      window.location.href = 'login.html';
     }
 
-    async function submitShift() {
-      const duration = document.getElementById('shiftDuration').value;
-      const { error } = await dbClient.from('shifts').insert([{ user_id: currentUser.id, duration_seconds: duration * 60, date: new Date().toISOString().split('T')[0] }]);
-      if (error) alert('Помилка!');
-      else alert('Зміну здано!');
+    // Заповнення даних користувача
+    document.getElementById('userName').textContent = currentUser.nick || 'Модератор';
+    document.getElementById('userAvatar').textContent = currentUser.account_number ? currentUser.account_number.slice(-2) : '05';
+
+    // Дати
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    document.getElementById('todayDate').textContent = todayStr;
+    document.getElementById('yesterdayDate').textContent = yesterdayStr;
+
+    // Логіка зміни (Почати / Закінчити)
+    let isOnDuty = localStorage.getItem('ugta_on_duty') === 'true';
+    let shiftStartTime = parseInt(localStorage.getItem('ugta_shift_start') || '0');
+
+    const statusBadge = document.getElementById('statusBadge');
+    const shiftToggleBtn = document.getElementById('shiftToggleBtn');
+
+    function updateShiftUI() {
+      if (isOnDuty) {
+        statusBadge.textContent = 'На зміні';
+        statusBadge.className = 'status-badge on';
+        shiftToggleBtn.textContent = 'Закінчити зміну';
+        shiftToggleBtn.className = 'action-btn btn-end';
+      } else {
+        statusBadge.textContent = 'Не на зміні';
+        statusBadge.className = 'status-badge off';
+        shiftToggleBtn.textContent = 'Почати зміну';
+        shiftToggleBtn.className = 'action-btn btn-start';
+      }
+    }
+    updateShiftUI();
+
+    async function toggleShift() {
+      const currentTime = Date.now();
+
+      if (!isOnDuty) {
+        // Почати зміну
+        isOnDuty = true;
+        shiftStartTime = currentTime;
+        localStorage.setItem('ugta_on_duty', 'true');
+        localStorage.setItem('ugta_shift_start', shiftStartTime);
+        updateShiftUI();
+      } else {
+        // Закінчити зміну та відправити в базу
+        const durationSec = Math.floor((currentTime - shiftStartTime) / 1000);
+        
+        if (durationSec > 10) { // Зберігаємо, якщо зміна тривала довше 10 секунд
+          const { error } = await dbClient.from('shifts').insert([{
+            user_id: currentUser.id,
+            duration_seconds: durationSec,
+            date: todayStr
+          }]);
+
+          if (error) {
+            alert('Помилка збереження зміни у базу!');
+          } else {
+            alert(`Зміну завершено! Відпрацьовано: ${Math.floor(durationSec / 60)} хв.`);
+          }
+        }
+
+        isOnDuty = false;
+        localStorage.removeItem('ugta_on_duty');
+        localStorage.removeItem('ugta_shift_start');
+        updateShiftUI();
+      }
     }
 
     function logout() {
