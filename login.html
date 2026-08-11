@@ -2,34 +2,141 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Вхід — Панель модерації</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { background: #0b0e14; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
-    .card { background: #121721; padding: 30px; border-radius: 12px; width: 300px; border: 1px solid #30363d; }
-    h2 { margin-top: 0; text-align: center; }
-    input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #30363d; background: #0b0e14; color: #fff; box-sizing: border-box; }
-    button { width: 100%; padding: 10px; background: #238636; border: none; color: #fff; border-radius: 6px; cursor: pointer; font-weight: 600; margin-top: 10px; }
-    button:hover { background: #2ea043; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { 
+      background: #0b0e14; 
+      color: #c9d1d9; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      padding: 20px;
+    }
+    
+    .card { 
+      background: #121721; 
+      padding: 35px 30px; 
+      border-radius: 16px; 
+      width: 100%; 
+      max-width: 380px; 
+      border: 1px solid #1e2638; 
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); 
+      text-align: center;
+    }
+
+    .logo-container {
+      margin-bottom: 20px;
+    }
+
+    .logo-img {
+      max-width: 160px;
+      height: auto;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+    }
+
+    .panel-subtitle {
+      color: #8b949e;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 25px;
+    }
+
+    .input-group {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #8b949e;
+      margin-bottom: 6px;
+    }
+
+    input { 
+      width: 100%; 
+      padding: 12px 14px; 
+      border-radius: 8px; 
+      border: 1px solid #30363d; 
+      background: #0b0e14; 
+      color: #fff; 
+      font-size: 14px; 
+      outline: none; 
+      transition: 0.2s;
+    }
+
+    input:focus { 
+      border-color: #1f6feb; 
+      box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15); 
+    }
+
+    button { 
+      width: 100%; 
+      padding: 12px; 
+      background: #238636; 
+      border: none; 
+      color: #fff; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-size: 15px; 
+      font-weight: 600; 
+      margin-top: 10px; 
+      transition: 0.2s; 
+    }
+
+    button:hover { 
+      background: #2ea043; 
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>Вхід</h2>
-    <input type="text" id="nick" placeholder="Ваш нікнейм">
-    <input type="password" id="password" placeholder="Пароль">
-    <button onclick="login()">Увійти</button>
+    <div class="logo-container">
+      <!-- Тут використовується ваше зображення логотипу -->
+      <img src="https://i.imgur.com/your_logo_link.png" alt="Ukraine GTA" class="logo-img" id="logoImg">
+      <div class="panel-subtitle">Moderation Panel</div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Нікнейм</label>
+      <input type="text" id="nick" placeholder="Введіть ваш нікнейм">
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">Пароль</label>
+      <input type="password" id="password" placeholder="••••••••">
+    </div>
+
+    <button onclick="login()">Увійти в систему</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Підключення до бази даних
+    // Підключення до бази даних Supabase
     const supabase = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
 
+    // Автоматичне підставлення вашого логотипу з попереднього повідомлення
+    const logoImg = document.getElementById('logoImg');
+    // Якщо у вас картинка завантажена в репозиторій, можете просто написати src="логотип.png"
+    // Або скористатись посиланням вище.
+    
     async function login() {
       const nick = document.getElementById('nick').value.trim();
       const password = document.getElementById('password').value.trim();
       
-      // Перевірка в базі даних за ніком та паролем
+      if (!nick || !password) {
+        alert('Будь ласка, заповніть усі поля!');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
