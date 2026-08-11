@@ -156,22 +156,13 @@
     .role-zktp { background: #3d2b1e; color: #d29922; border: 1px solid rgba(210, 153, 34, 0.3); }
     .role-ktp { background: #3d1e1e; color: #f85149; border: 1px solid rgba(248, 81, 73, 0.3); }
 
-    /* --- ТОЧНИЙ ЛОГОТИП СЕРВЕРА (ЩИТ З СЕРВЕР XX) --- */
-    .server-shield-badge {
-      background: #000000;
-      color: #ffffff;
-      font-weight: 900;
-      font-style: italic;
-      font-size: 11px;
-      padding: 6px 10px 8px 10px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      white-space: nowrap;
-      clip-path: polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%);
-      box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.1);
-      letter-spacing: -0.2px;
-      user-select: none;
+    /* --- СТИЛЬ ДЛЯ КАРТИНКИ-ЛОГОТИПА СЕРВЕРА --- */
+    .server-logo-img {
+      height: 32px;
+      width: auto;
+      display: inline-block;
+      vertical-align: middle;
+      object-fit: contain;
     }
 
     .profile-dropdown {
@@ -348,7 +339,7 @@
 </head>
 <body>
 
-  <!-- 1. ЕКРАН ВХОДУ (Завжди вимагає введення) -->
+  <!-- 1. ЕКРАН ВХОДУ -->
   <div id="authScreen" class="auth-wrapper">
     <div class="auth-container">
       <div class="auth-header">
@@ -380,7 +371,7 @@
       <div class="user-profile-btn" id="profileBtn">
         <span class="user-name" id="userNick">Завантаження...</span>
         <span class="role-badge" id="userRole">S.M</span>
-        <div class="server-shield-badge" id="userServer">Сервер 05</div>
+        <span id="userServerContainer"></span>
 
         <div class="profile-dropdown" id="profileDropdown">
           <div class="dropdown-item" onclick="alert('Розділ налаштувань у розробці')">Налаштування</div>
@@ -465,6 +456,23 @@
     const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
     const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
+    // ПЕРЕЛІК ПОСИЛАНЬ НА КАРТИНКИ-ЛОГОТИПИ СЕРВЕРІВ UGTA
+    const serverLogoImages = {
+      '01': 'https://ukraine-gta.com.ua/assets/img/servers/server-1.png',
+      '02': 'https://ukraine-gta.com.ua/assets/img/servers/server-2.png',
+      '03': 'https://ukraine-gta.com.ua/assets/img/servers/server-3.png',
+      '04': 'https://ukraine-gta.com.ua/assets/img/servers/server-4.png',
+      '05': 'https://ukraine-gta.com.ua/assets/img/servers/server-5.png',
+      '06': 'https://ukraine-gta.com.ua/assets/img/servers/server-6.png',
+      '07': 'https://ukraine-gta.com.ua/assets/img/servers/server-7.png'
+    };
+
+    function getServerLogoHTML(serverNum) {
+      const numStr = String(serverNum).padStart(2, '0');
+      const imgUrl = serverLogoImages[numStr] || serverLogoImages['05'];
+      return `<img src="${imgUrl}" alt="Сервер ${numStr}" class="server-logo-img" onerror="this.onerror=null; this.outerHTML='<span style=\'font-weight:bold; color:#fff;\'>Сервер ${numStr}</span>';"/>`;
+    }
+
     let currentUser = null;
     let isOnShift = false;
     let timerInterval = null;
@@ -535,10 +543,10 @@
       else if (rawRole.includes('КТП')) roleElem.classList.add('role-ktp');
       else roleElem.classList.add('role-sm');
 
-      // Відображення на щиті: "Сервер XX"
-      const srvElem = document.getElementById('userServer');
-      const srvNum = String(user.server || '05').padStart(2, '0');
-      srvElem.textContent = `Сервер ${srvNum}`;
+      // Відображення оригінального логотипа сервера біля ніка
+      const srvContainer = document.getElementById('userServerContainer');
+      const srvNum = user.server || '05';
+      srvContainer.innerHTML = getServerLogoHTML(srvNum);
 
       loadRecentShifts();
       renderLeaderboard();
@@ -663,7 +671,7 @@
           <tr>
             <td><span class="rank-badge">${rankSymbol}</span></td>
             <td><strong>${item.nick}</strong></td>
-            <td><div class="server-shield-badge">Сервер ${item.server}</div></td>
+            <td>${getServerLogoHTML(item.server)}</td>
             <td style="font-family: monospace; font-weight: 600;">${item[currentPeriod]}</td>
           </tr>
         `;
