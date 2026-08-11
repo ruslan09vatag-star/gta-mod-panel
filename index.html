@@ -174,14 +174,17 @@
         shiftToggleBtn.disabled = true;
         shiftToggleBtn.textContent = 'Збереження...';
 
-        // Миттєво очищаємо локальну пам'ять і змінюємо статус
-        isOnDuty = false;
-        shiftStartTime = 0;
-        localStorage.removeItem('ugta_is_on_duty_' + nick);
-        localStorage.removeItem('ugta_shift_start_' + nick);
-        updateShiftUI();
+        let isSaved = false;
+        const safetyTimeout = setTimeout(() => {
+          if (!isSaved) {
+            console.warn("Збереження триває занадто довго, примусове розблокування.");
+            shiftToggleBtn.disabled = false;
+            loadShiftsHistory();
+          }
+        }, 5000);
 
         try {
+          // Зберігаємо зміну в Firebase
           await saveShift({
             nick: nick,
             server: server,
@@ -189,10 +192,20 @@
             date: todayStr,
             duration_seconds: durationSec
           });
+          isSaved = true;
         } catch (error) {
           console.error("Помилка збереження зміни:", error);
         } finally {
+          // Скидаємо локальний стан тільки після завершення запиту
+          isOnDuty = false;
+          shiftStartTime = 0;
+          localStorage.removeItem('ugta_is_on_duty_' + nick);
+          localStorage.removeItem('ugta_shift_start_' + nick);
+          
+          clearTimeout(safetyTimeout);
           shiftToggleBtn.disabled = false;
+          
+          updateShiftUI();
           loadShiftsHistory();
         }
       }
