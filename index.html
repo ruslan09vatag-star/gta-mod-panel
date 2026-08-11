@@ -164,13 +164,16 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script type="module">
     import { getAllShifts, saveShift, getRoleColor } from './data.js';
+
+    const dbClient = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
 
     let currentUser = JSON.parse(localStorage.getItem('ugta_current_user') || 'null');
     if (!currentUser) { window.location.href = 'login.html'; }
 
-    const nick = currentUser.nick || 'Користувач';
+    const nick = currentUser.nick || currentUser.name || 'Користувач';
     const server = currentUser.server || '02';
     const role = currentUser.role || currentUser.status || 'Модератор';
 
@@ -317,11 +320,11 @@
       document.getElementById('settingsModal').style.display = 'none';
     }
 
-    window.saveSettings = function() {
+    window.saveSettings = async function() {
       const fileInput = document.getElementById('avatarFile');
       const newPassword = document.getElementById('passwordInput').value.trim();
 
-      const applyChanges = (avatarData) => {
+      const applyChanges = async (avatarData) => {
         if (avatarData !== undefined) {
           if (avatarData) {
             localStorage.setItem('ugta_avatar_' + nick, avatarData);
@@ -335,19 +338,20 @@
         }
 
         if (newPassword) {
-          // 1. Оновлюємо поточну сесію
-          currentUser.password = newPassword;
-          localStorage.setItem('ugta_current_user', JSON.stringify(currentUser));
+          const { error } = await dbClient
+            .from('profiles')
+            .update({ password: newPassword })
+            .eq('account_number', currentUser.account_number);
 
-          // 2. Оновлюємо в загальному сховищі користувачів, якщо воно використовується
-          let allUsers = JSON.parse(localStorage.getItem('ugta_users') || '[]');
-          const userIndex = allUsers.findIndex(u => u.nick && u.nick.toLowerCase() === nick.toLowerCase());
-          if (userIndex !== -1) {
-            allUsers[userIndex].password = newPassword;
-            localStorage.setItem('ugta_users', JSON.stringify(allUsers));
+          if (error) {
+            alert('Помилка при збереженні пароля в базі!');
+            console.error(error);
+            return;
           }
 
-          alert('Пароль та налаштування успішно збережено!');
+          currentUser.password = newPassword;
+          localStorage.setItem('ugta_current_user', JSON.stringify(currentUser));
+          alert('Пароль та налаштування успішно збережено в базі!');
         } else {
           alert('Налаштування успішно збережено!');
         }
@@ -373,6 +377,6 @@
 
     loadShiftsHistory();
     setInterval(() => { if (isOnDuty) loadShiftsHistory(); }, 1000);
-  </script> 
+  </script>
 </body>
 </html>
