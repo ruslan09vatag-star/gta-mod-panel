@@ -31,7 +31,9 @@
     .table th { color: #8b949e; font-size: 12px; font-weight: 600; background: #161b22; }
     .rank-cell { font-weight: 700; color: #58a6ff; width: 50px; }
     .time-cell { font-family: monospace; font-weight: 600; color: #3fb950; font-size: 14px; }
-    .server-badge { background: #1f293d; color: #58a6ff; padding: 2px 6px; border-radius: 6px; border: 1px solid #30363d; font-size: 11px; font-weight: 500; }
+    
+    .server-badge { padding: 3px 8px; border-radius: 6px; border: 1px solid; font-size: 11px; font-weight: 600; display: inline-block; }
+    
     .role-badge { font-size: 11px; font-weight: 600; display: block; margin-top: 2px; }
     .empty-row { text-align: center; color: #8b949e; padding: 25px !important; }
 
@@ -101,6 +103,21 @@
       renderLeaderboard();
     }
 
+    // Функція для призначення кольорів бейджам серверів
+    function getServerBadgeStyle(serverNum) {
+      const s = String(serverNum).padStart(2, '0');
+      switch(s) {
+        case '01': return 'color: #ff922b; background: rgba(255, 146, 43, 0.15); border-color: rgba(255, 146, 43, 0.4);'; // Помаранчевий
+        case '02': return 'color: #33b1ff; background: rgba(51, 177, 255, 0.15); border-color: rgba(51, 177, 255, 0.4);'; // Блакитний
+        case '03': return 'color: #2fb344; background: rgba(47, 179, 68, 0.15); border-color: rgba(47, 179, 68, 0.4);';   // Зелений
+        case '04': return 'color: #9775fa; background: rgba(151, 117, 250, 0.15); border-color: rgba(151, 117, 250, 0.4);'; // Фіолетовий
+        case '05': return 'color: #f06595; background: rgba(240, 101, 149, 0.15); border-color: rgba(240, 101, 149, 0.4);'; // Рожевий
+        case '06': return 'color: #12b886; background: rgba(18, 184, 134, 0.15); border-color: rgba(18, 184, 134, 0.4);'; // Бірюзовий
+        case '07': return 'color: #4dabf7; background: rgba(77, 171, 247, 0.15); border-color: rgba(77, 171, 247, 0.4);'; // Синій
+        default: return 'color: #8b949e; background: rgba(139, 148, 158, 0.15); border-color: rgba(139, 148, 158, 0.4);';
+      }
+    }
+
     window.renderLeaderboard = async function() {
       const data = await getAllShifts();
       const selectedServer = document.getElementById('serverFilter').value;
@@ -155,6 +172,7 @@
         const s = sec % 60;
         const timeFormatted = `${h} год ${m} хв ${s} сек`;
         const roleColor = getRoleColor(userStats.role);
+        const serverStyle = getServerBadgeStyle(userStats.server);
 
         return `
           <tr>
@@ -163,7 +181,7 @@
               <b>${userStats.originalName}</b>
               <span class="role-badge" style="color: ${roleColor};">${userStats.role}</span>
             </td>
-            <td><span class="server-badge">Сервер ${userStats.server}</span></td>
+            <td><span class="server-badge" style="${serverStyle}">Сервер ${userStats.server}</span></td>
             <td class="time-cell">${timeFormatted}</td>
           </tr>
         `;
