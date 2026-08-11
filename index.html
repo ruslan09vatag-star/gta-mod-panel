@@ -14,10 +14,7 @@
     /* Верхня панель */
     .top-bar { display: flex; justify-content: space-between; align-items: center; background: #121721; border: 1px solid #1e2638; padding: 12px 24px; border-radius: 12px; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
     .user-info { display: flex; align-items: center; gap: 12px; }
-    
-    /* Великий квадрат для номера сервера */
     .user-avatar { background: #1f6feb; color: #fff; font-weight: 700; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 18px; }
-    
     .user-name { font-weight: 600; color: #fff; font-size: 16px; }
     
     .nav-links { display: flex; gap: 8px; align-items: center; }
@@ -47,7 +44,7 @@
     .stat-date { color: #8b949e; font-size: 12px; margin-bottom: 12px; }
     .stat-time { font-size: 28px; font-weight: 700; color: #fff; font-family: monospace; }
 
-    /* Останні зміни (історія) */
+    /* Останні зміни */
     .section-title { color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 14px; }
     .history-list { display: flex; flex-direction: column; gap: 10px; }
     .history-item { background: #121721; border: 1px solid #1e2638; padding: 16px 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
@@ -58,10 +55,8 @@
 <body>
 
   <div class="main-container">
-    <!-- Шапка сайту -->
     <div class="top-bar">
       <div class="user-info">
-        <!-- У великий квадрат виводимо номер сервера з бази -->
         <div class="user-avatar" id="serverBox">02</div>
         <div>
           <div class="user-name" id="userName">Завантаження...</div>
@@ -76,7 +71,6 @@
 
     <h1>Панель модерації</h1>
 
-    <!-- Статус зміни -->
     <div class="status-card">
       <div class="status-text">
         Статус: <span id="statusBadge" class="status-badge off">Не на зміні</span>
@@ -84,7 +78,6 @@
       <button id="shiftToggleBtn" class="action-btn btn-start" onclick="toggleShift()">Почати зміну</button>
     </div>
 
-    <!-- Статистика сьогодні / вчора -->
     <div class="stats-grid">
       <div class="stat-box">
         <div class="stat-title">Сьогодні</div>
@@ -98,7 +91,6 @@
       </div>
     </div>
 
-    <!-- Останні зміни -->
     <div class="section-title">Останні зміни</div>
     <div class="history-list" id="historyList">
       <div style="color: #8b949e; font-size: 14px;">Завантаження історії...</div>
@@ -115,7 +107,6 @@
       window.location.href = 'login.html';
     }
 
-    // Виводимо нік та номер сервера у великий квадрат, прибравши зайвий текст
     document.getElementById('userName').textContent = currentUser.nick || 'Модератор';
     document.getElementById('serverBox').textContent = currentUser.server || '02';
 
@@ -153,26 +144,26 @@
       const currentTime = Date.now();
 
       if (!isOnDuty) {
-        // Почати зміну
         isOnDuty = true;
         shiftStartTime = currentTime;
         localStorage.setItem('ugta_ugta_on_duty', 'true');
         localStorage.setItem('ugta_shift_start', shiftStartTime);
         updateShiftUI();
       } else {
-        // Закінчити зміну (тепер зберігається будь-який час без обмежень)
         const durationSec = Math.max(1, Math.floor((currentTime - shiftStartTime) / 1000));
         
+        // Зберігаємо використовуючи account_number замість user_id, щоб уникнути помилки бази
         const { error } = await dbClient.from('shifts').insert([{
-          user_id: currentUser.id,
+          account_number: currentUser.account_number,
           duration_seconds: durationSec,
           date: todayStr
         }]);
 
         if (error) {
-          alert('Помилка збереження зміни у базу!');
+          console.error(error);
+          alert('Помилка збереження зміни у базу! Перевірте назви колонок в таблиці shifts.');
         } else {
-          alert(`Зміну завершено! Додано до історії: ${Math.floor(durationSec / 60)} хв ${durationSec % 60} сек.`);
+          alert(`Зміну завершено! Тривалість: ${Math.floor(durationSec / 60)} хв ${durationSec % 60} сек.`);
           loadShiftsHistory();
         }
 
@@ -183,14 +174,13 @@
       }
     }
 
-    // Завантаження історії змін
     async function loadShiftsHistory() {
       const { data, error } = await dbClient
         .from('shifts')
         .select('*')
-        .eq('user_id', currentUser.id)
+        .eq('account_number', currentUser.account_number)
         .order('id', { ascending: false })
-        .limit(5);
+        .limit(10);
 
       const historyList = document.getElementById('historyList');
 
@@ -219,6 +209,12 @@
         `;
       }).join('');
 
+      // Додаємо поточний незавершений час у реальному часі до блоку "Сьогодні"
+      if (isOnDuty && shiftStartTime > 0) {
+        const activeSeconds = Math.floor((Date.now() - shiftStartTime) / 1000);
+        todayTotalSec += activeSeconds;
+      }
+
       document.getElementById('todayTime').textContent = formatTime(todayTotalSec);
       document.getElementById('yesterdayTime').textContent = formatTime(yesterdayTotalSec);
     }
@@ -235,7 +231,13 @@
       window.location.href = 'login.html';
     }
 
+    // Завантажуємо історію та запускаємо інтервал оновлення таймера каждую секунду
     loadShiftsHistory();
+    setInterval(() => {
+      if (isOnDuty) {
+        loadShiftsHistory();
+      }
+    }, 1000);
   </script>
 </body>
 </html>
