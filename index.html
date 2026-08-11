@@ -11,10 +11,12 @@
     .main-container { max-width: 1100px; margin: 0 auto; }
     
     .header-section { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    
     h1 { color: #fff; font-size: 26px; font-weight: 700; }
     
     .nav-links { display: flex; gap: 10px; margin-bottom: 20px; }
-    .nav-link { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; transition: 0.2s; }
+    .nav-link { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; transition: 0.2s; cursor: pointer; display: inline-block; }
     .nav-link:hover { color: #fff; background: #1f293d; }
     .nav-link.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
 
@@ -28,16 +30,37 @@
     
     .action-btn { background: #238636; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s; width: 100%; }
     .action-btn:hover { background: #2ea043; }
+
+    /* Стилі для профілю та налаштувань */
+    .user-profile-card { display: flex; align-items: center; justify-content: space-between; background: #121721; border: 1px solid #1e2638; border-radius: 12px; padding: 15px 20px; margin-bottom: 20px; }
+    .user-info { display: flex; align-items: center; gap: 15px; }
+    .user-avatar-large { width: 48px; height: 48px; border-radius: 50%; background: #21262d; border: 1px solid #30363d; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #fff; font-size: 18px; }
+    .user-details h3 { color: #fff; font-size: 16px; margin-bottom: 3px; }
+    .user-details span { color: #8b949e; font-size: 12px; }
+    .settings-btn { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .settings-btn:hover { background: #30363d; color: #fff; }
   </style>
 </head>
 <body>
 
   <div class="main-container">
-    <!-- Навігація між сторінками -->
+    <!-- Навігація між панелями -->
     <div class="nav-links">
-      <a href="index.html" class="nav-link active">Панель модератора</a>
-      <a href="admin.html" class="nav-link">Панель керівництва</a>
-      <a href="leaderboard.html" class="nav-link">Лідерборд 🏆</a>
+      <button class="nav-link active" onclick="window.location.href='index.html'">Панель модератора</button>
+      <button class="nav-link" onclick="window.location.href='admin.html'">Панель керівництва</button>
+      <button class="nav-link" onclick="window.location.href='leaderboard.html'">Лідерборд 🏆</button>
+    </div>
+
+    <!-- Блок профілю користувача з аватаркою та налаштуваннями -->
+    <div class="user-profile-card">
+      <div class="user-info">
+        <div class="user-avatar-large" id="userAvatarLetter">Р</div>
+        <div class="user-details">
+          <h3 id="profileNickName">Руслан</h3>
+          <span id="profileRoleText">Модератор • Сервер 01</span>
+        </div>
+      </div>
+      <button class="settings-btn" onclick="openSettings()">⚙️ Налаштування</button>
     </div>
 
     <div class="header-section">
@@ -45,13 +68,13 @@
     </div>
 
     <div class="card">
-      <div class="section-title">Керування зміною</div>
+      <div class="section-title">Керування останньою зміною</div>
       <div class="form-group">
-        <label class="form-label">Ваш нікнейм</label>
-        <input type="text" id="nickInput" class="form-input" placeholder="Введіть нік...">
+        <label class="form-label">Нікнейм модератора</label>
+        <input type="text" id="nickInput" class="form-input" placeholder="Введіть нік..." value="Руслан">
       </div>
       <div class="form-group">
-        <label class="form-label">Сервер</label>
+        <label class="form-label">Вибрати сервер</label>
         <select id="serverSelect" class="form-select">
           <option value="1">Сервер 01</option>
           <option value="2">Сервер 02</option>
@@ -62,18 +85,23 @@
           <option value="7">Сервер 07</option>
         </select>
       </div>
-      <button class="action-btn" onclick="toggleShift()">Розпочати зміну</button>
+      <button class="action-btn" onclick="toggleShift()">Розпочати / Завершити зміну</button>
     </div>
   </div>
 
   <script type="module">
     window.toggleShift = function() {
       const nick = document.getElementById('nickInput').value;
+      const server = document.getElementById('serverSelect').value;
       if (!nick) {
         alert("Будь ласка, введіть нікнейм!");
         return;
       }
-      alert(`Зміну для ${nick} успішно збережено!`);
+      alert(`Зміну для ${nick} на сервері 0${server} успішно оновлено!`);
+    }
+
+    window.openSettings = function() {
+      alert("Відкриття налаштувань (зміна пароля, аватара тощо)...");
     }
   </script>
 </body>
