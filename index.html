@@ -152,18 +152,17 @@
       } else {
         const durationSec = Math.max(1, Math.floor((currentTime - shiftStartTime) / 1000));
         
-        // Зберігаємо використовуючи account_number замість user_id, щоб уникнути помилки бази
+        // Зберігаємо зміну за ніком користувача
         const { error } = await dbClient.from('shifts').insert([{
-          account_number: currentUser.account_number,
+          nick: currentUser.nick,
           duration_seconds: durationSec,
           date: todayStr
         }]);
 
         if (error) {
           console.error(error);
-          alert('Помилка збереження зміни у базу! Перевірте назви колонок в таблиці shifts.');
+          alert('Помилка збереження зміни у базу! Перевірте підключення.');
         } else {
-          alert(`Зміну завершено! Тривалість: ${Math.floor(durationSec / 60)} хв ${durationSec % 60} сек.`);
           loadShiftsHistory();
         }
 
@@ -178,7 +177,7 @@
       const { data, error } = await dbClient
         .from('shifts')
         .select('*')
-        .eq('account_number', currentUser.account_number)
+        .eq('nick', currentUser.nick)
         .order('id', { ascending: false })
         .limit(10);
 
@@ -209,7 +208,7 @@
         `;
       }).join('');
 
-      // Додаємо поточний незавершений час у реальному часі до блоку "Сьогодні"
+      // Додаємо поточний час наживо до блоку "Сьогодні"
       if (isOnDuty && shiftStartTime > 0) {
         const activeSeconds = Math.floor((Date.now() - shiftStartTime) / 1000);
         todayTotalSec += activeSeconds;
@@ -231,8 +230,8 @@
       window.location.href = 'login.html';
     }
 
-    // Завантажуємо історію та запускаємо інтервал оновлення таймера каждую секунду
     loadShiftsHistory();
+    // Оновлюємо таймер кожну секунду, якщо користувач на зміні
     setInterval(() => {
       if (isOnDuty) {
         loadShiftsHistory();
