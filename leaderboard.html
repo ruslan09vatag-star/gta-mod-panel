@@ -92,18 +92,18 @@
   </div>
 
   <script type="module">
-    import { getAllShifts, getRoleColor } from './data.js';
+    import { subscribeToShifts, getRoleColor } from './data.js';
 
     let currentPeriod = 'today';
+    let allShiftsData = [];
 
     window.setPeriod = function(period, event) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
       currentPeriod = period;
-      renderLeaderboard();
+      updateLeaderboardUI();
     }
 
-    // Функція для призначення кольорів бейджам серверів
     function getServerBadgeStyle(serverNum) {
       const s = String(serverNum).padStart(2, '0');
       switch(s) {
@@ -118,15 +118,18 @@
       }
     }
 
-    window.renderLeaderboard = async function() {
-      const data = await getAllShifts();
+    window.renderLeaderboard = function() {
+      updateLeaderboardUI();
+    }
+
+    function updateLeaderboardUI() {
       const selectedServer = document.getElementById('serverFilter').value;
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
 
       const stats = {};
 
-      data.forEach(shift => {
+      allShiftsData.forEach(shift => {
         if (!shift.nick) return;
 
         if (selectedServer !== 'all') {
@@ -151,7 +154,7 @@
           if (!stats[key]) {
             stats[key] = { originalName: shift.nick, time: 0, server: shift.server, role: shift.role || 'Модератор' };
           }
-          stats[key].time += shift.duration_seconds;
+          stats[key].time += (shift.duration_seconds || 0);
           if (shift.role) stats[key].role = shift.role;
         }
       });
@@ -188,7 +191,11 @@
       }).join('');
     }
 
-    renderLeaderboard();
+    // Автоматичне оновлення лідерборду в реальному часі
+    subscribeToShifts((shifts) => {
+      allShiftsData = shifts;
+      updateLeaderboardUI();
+    });
   </script>
 </body>
 </html>
