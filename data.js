@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyA6gSnuDVHlP0OnnCdACckeJTME07vDT2E",
@@ -15,19 +15,18 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const COLLECTION_NAME = "ugta_shifts";
 
-export async function getAllShifts() {
-  try {
-    const q = query(collection(db, COLLECTION_NAME));
-    const querySnapshot = await getDocs(q);
+// Функція реального часу для відстеження змін
+export function subscribeToShifts(callback) {
+  const q = query(collection(db, COLLECTION_NAME));
+  return onSnapshot(q, (querySnapshot) => {
     const shifts = [];
     querySnapshot.forEach((doc) => {
-      shifts.push(doc.data());
+      shifts.push({ id: doc.id, ...doc.data() });
     });
-    return shifts;
-  } catch (e) {
-    console.error("Помилка завантаження даних: ", e);
-    return [];
-  }
+    callback(shifts);
+  }, (error) => {
+    console.error("Помилка підписки на зміни в реальному часі: ", error);
+  });
 }
 
 export async function saveShift(shiftData) {
@@ -41,8 +40,8 @@ export async function saveShift(shiftData) {
 export function getRoleColor(r) {
   if (!r) return '#f0883e';
   const lower = r.toLowerCase();
-  if (lower.includes('ктп')) return '#f85149';   // Червоний
+  if (lower.includes('ктп')) return '#f85149';    // Червоний
   if (lower.includes('зктп')) return '#3fb950';  // Зелений
   if (lower.includes('s.m') || lower.includes('sm')) return '#bc8cff'; // Фіолетовий
-  return '#f0883e'; // Оранжевий (Модератор)
+  return '#f0883e'; // Оранжевий
 }
