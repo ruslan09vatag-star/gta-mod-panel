@@ -4,38 +4,71 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UGTA Moderation Panel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* Стилі залишаються тими ж, що були в попередній версії */
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
     body { background-color: #0b0e14; color: #c9d1d9; min-height: 100vh; padding: 24px 40px; }
     .main-wrapper { max-width: 1300px; margin: 0 auto; }
-    .page-title { color: #ffffff; font-size: 26px; font-weight: 700; margin-bottom: 24px; }
+    
+    /* Навігація / Кнопки */
+    .nav-container { display: flex; gap: 12px; margin-bottom: 24px; }
+    .nav-btn { background: #161b26; border: 1px solid #1e2638; color: #c9d1d9; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .nav-btn:hover, .nav-btn.active { background: #1f6feb; color: #ffffff; border-color: #1f6feb; }
+
+    .page-title { color: #ffffff; font-size: 26px; font-weight: 700; margin-bottom: 20px; }
+
+    /* Періоди */
+    .periods-container { display: flex; gap: 8px; margin-bottom: 16px; }
+    .period-btn { background: #121721; border: 1px solid #1e2638; color: #8b949e; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .period-btn.active { background: #21262d; color: #ffffff; border-color: #30363d; }
+
+    /* Таблиця */
     .lb-table { width: 100%; border-collapse: collapse; background: #121721; border-radius: 12px; overflow: hidden; border: 1px solid #1e2638; }
     .lb-table th, .lb-table td { padding: 16px 20px; text-align: left; }
-    .lb-table th { background: #161b26; color: #8b949e; font-size: 13px; font-weight: 600; }
-    .rank-badge { font-weight: 700; width: 30px; display: inline-block; }
-    .server-badge { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 40px; clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%); color: #ffffff; font-weight: 900; font-size: 14px; }
+    .lb-table th { background: #161b26; color: #8b949e; font-size: 13px; font-weight: 600; border-bottom: 1px solid #1e2638; }
+    .lb-table td { border-bottom: 1px solid #161b26; }
+    .rank-badge { font-weight: 700; width: 30px; display: inline-block; color: #f0f6fc; }
   </style>
 </head>
 <body>
 
   <div class="main-wrapper">
-    <!-- Кнопки перемикання -->
-    <button onclick="switchTab('main')">Панель</button>
-    <button onclick="switchTab('leaderboard')">Лідерборд</button>
+    <!-- Навігація по вкладках -->
+    <div class="nav-container">
+      <button class="nav-btn active" onclick="switchTab('main', this)">Панель</button>
+      <button class="nav-btn" onclick="switchTab('leaderboard', this)">Лідерборд</button>
+    </div>
 
+    <!-- Головна панель -->
+    <div id="mainSection">
+      <h1 class="page-title">Головна панель</h1>
+      <p style="color: #8b949e;">Вітаємо у панелі модерації UGTA!</p>
+    </div>
+
+    <!-- Секція лідерборду -->
     <div id="leaderboardSection" style="display:none;">
       <h1 class="page-title">Лідерборд модераторів</h1>
+      
       <!-- Перемикачі періодів -->
-      <button onclick="setPeriod('day')">День</button>
-      <button onclick="setPeriod('week')">Тиждень</button>
-      <button onclick="setPeriod('month')">Місяць</button>
+      <div class="periods-container">
+        <button class="period-btn active" onclick="setPeriod('day', this)">День</button>
+        <button class="period-btn" onclick="setPeriod('week', this)">Тиждень</button>
+        <button class="period-btn" onclick="setPeriod('month', this)">Місяць</button>
+      </div>
       
       <table class="lb-table">
-        <thead><tr><th>#</th><th>Модератор</th><th>Сервер</th><th>Час</th></tr></thead>
-        <tbody id="lbTableBody"></tbody>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Модератор</th>
+            <th>Сервер</th>
+            <th>Час</th>
+          </tr>
+        </thead>
+        <tbody id="lbTableBody">
+          <tr><td colspan="4" style="text-align:center; color:#6e7681;">Завантаження даних...</td></tr>
+        </tbody>
       </table>
     </div>
   </div>
@@ -49,10 +82,22 @@
     let currentPeriod = 'day';
     const todayStr = new Date().toISOString().split('T')[0];
 
+    // Перемикача вкладок
+    function switchTab(tabName, btn) {
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.getElementById('mainSection').style.display = tabName === 'main' ? 'block' : 'none';
+      document.getElementById('leaderboardSection').style.display = tabName === 'leaderboard' ? 'block' : 'none';
+
+      if(tabName === 'leaderboard') {
+        fetchShifts();
+      }
+    }
+
     async function fetchShifts() {
-      // Завантажуємо зміни разом з даними профілів
-      const { data } = await dbClient.from('shifts').select('*, profiles(nick, server)');
-      if (data) {
+      const { data, error } = await dbClient.from('shifts').select('*, profiles(nick, server)');
+      if (!error && data) {
         allShiftsData = data;
         renderLeaderboard();
       }
@@ -65,19 +110,26 @@
       return Math.ceil((((date - new Date(date.getFullYear(), 0, 1)) / 86400000) + 1) / 7);
     }
 
+    function setPeriod(p, btn) {
+      currentPeriod = p;
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderLeaderboard();
+    }
+
     function renderLeaderboard() {
       const tbody = document.getElementById('lbTableBody');
       const now = new Date();
       const statsMap = {};
 
       allShiftsData.forEach(shift => {
-        // 1. ВИДАЛЕННЯ НЕСПРАВЖНІХ: ігноруємо записи без профілю
+        // Видалення несправжніх (без профілю)
         if (!shift.profiles) return;
         
         const shiftDate = new Date(shift.date);
         let include = false;
 
-        // 2. АВТО-СКИДАННЯ: перевірка періоду
+        // Авто-скидання залежно від обраного періоду
         if (currentPeriod === 'day' && shift.date === todayStr) {
           include = true;
         } else if (currentPeriod === 'week' && getWeekNumber(shiftDate) === getWeekNumber(now) && shiftDate.getFullYear() === now.getFullYear()) {
@@ -98,24 +150,29 @@
       const lbArray = Object.values(statsMap).sort((a, b) => b.totalSec - a.totalSec);
 
       if (lbArray.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Немає даних за цей період.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#6e7681;">Немає даних за поточний період.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = lbArray.map((item, i) => `
-        <tr>
-          <td><span class="rank-badge">${i+1}</span></td>
-          <td>${item.nick}</td>
-          <td>${item.server}</td>
-          <td>${Math.floor(item.totalSec/3600)}год ${Math.floor((item.totalSec%3600)/60)}хв</td>
-        </tr>
-      `).join('');
-    }
+      tbody.innerHTML = lbArray.map((item, i) => {
+        let rank = i + 1;
+        if (i === 0) rank = '🥇';
+        else if (i === 1) rank = '🥈';
+        else if (i === 2) rank = '🥉';
 
-    function setPeriod(p) { currentPeriod = p; renderLeaderboard(); }
-    function switchTab(t) { /* логіка відображення секцій */ }
-    
-    fetchShifts();
+        const hours = Math.floor(item.totalSec / 3600);
+        const minutes = Math.floor((item.totalSec % 3600) / 60);
+
+        return `
+          <tr>
+            <td><span class="rank-badge">${rank}</span></td>
+            <td><strong>${item.nick}</strong></td>
+            <td>Сервер ${item.server}</td>
+            <td style="font-family: monospace; font-weight: 600;">${hours} год ${minutes} хв</td>
+          </tr>
+        `;
+      }).join('');
+    }
   </script>
 </body>
 </html>
