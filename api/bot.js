@@ -59,9 +59,10 @@ module.exports = async (req, res) => {
         return res.status(200).json({ status: 'OK' });
       }
 
-      const nick = parts[1];
-      const server = parts[2];
-      const role = parts[3];
+      // Остання частина — роль, передостання — сервер, усе між ними — нікнейм
+      const role = parts[parts.length - 1];
+      const server = parts[parts.length - 2];
+      const nick = parts.slice(1, parts.length - 2).join(' ');
 
       const accountNumber = String(Math.floor(10000 + Math.random() * 90000));
       const password = generatePassword(8);
