@@ -69,7 +69,7 @@
       </div>
       <div class="nav-links">
         <a href="index.html" class="nav-btn active">Панель</a>
-        <a href="#" class="nav-btn" onclick="alert('Розділ у розробці')">Лідерборд</a>
+        <a href="leaderboard.html" class="nav-btn">Лідерборд</a>
         <a href="#" class="nav-btn logout-btn" onclick="logout()">Вийти</a>
       </div>
     </div>
@@ -104,9 +104,7 @@
 
   <script>
     const currentUser = JSON.parse(localStorage.getItem('ugta_current_user'));
-    if (!currentUser) {
-      window.location.href = 'login.html';
-    }
+    if (!currentUser) { window.location.href = 'login.html'; }
 
     const nick = currentUser.nick || 'Модератор';
     const server = currentUser.server || '02';
@@ -124,7 +122,6 @@
     document.getElementById('todayDate').textContent = todayStr;
     document.getElementById('yesterdayDate').textContent = yesterdayStr;
 
-    // Виправлено ключ збереження стану зміни
     let isOnDuty = localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
     let shiftStartTime = parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
 
@@ -148,7 +145,6 @@
 
     function toggleShift() {
       const currentTime = Date.now();
-
       if (!isOnDuty) {
         isOnDuty = true;
         shiftStartTime = currentTime;
@@ -157,16 +153,9 @@
         updateShiftUI();
       } else {
         const durationSec = Math.max(1, Math.floor((currentTime - shiftStartTime) / 1000));
-        
         let shifts = JSON.parse(localStorage.getItem('ugta_shifts_' + nick) || '[]');
-        
-        shifts.unshift({
-          date: todayStr,
-          duration_seconds: durationSec
-        });
-
+        shifts.unshift({ date: todayStr, duration_seconds: durationSec });
         localStorage.setItem('ugta_shifts_' + nick, JSON.stringify(shifts));
-
         isOnDuty = false;
         localStorage.removeItem('ugta_is_on_duty_' + nick);
         localStorage.removeItem('ugta_shift_start_' + nick);
@@ -178,61 +167,36 @@
     function loadShiftsHistory() {
       const shifts = JSON.parse(localStorage.getItem('ugta_shifts_' + nick) || '[]');
       const historyList = document.getElementById('historyList');
-
-      if (shifts.length === 0) {
-        historyList.innerHTML = `<div style="color: #8b949e; font-size: 14px;">Ще немає завершених змін.</div>`;
-      } else {
+      if (shifts.length === 0) { historyList.innerHTML = `<div style="color: #8b949e; font-size: 14px;">Ще немає завершених змін.</div>`; } 
+      else {
         historyList.innerHTML = shifts.slice(0, 10).map(shift => {
-          const hours = Math.floor(shift.duration_seconds / 3600);
-          const minutes = Math.floor((shift.duration_seconds % 3600) / 60);
-          const seconds = shift.duration_seconds % 60;
-          const timeFormatted = `${hours} год ${minutes} хв ${seconds} сек`;
-
-          return `
-            <div class="history-item">
-              <span class="history-date">Дата: <b>${shift.date}</b></span>
-              <span class="history-duration">Період: ${timeFormatted}</span>
-            </div>
-          `;
+          const h = Math.floor(shift.duration_seconds / 3600);
+          const m = Math.floor((shift.duration_seconds % 3600) / 60);
+          const s = shift.duration_seconds % 60;
+          return `<div class="history-item"><span class="history-date">Дата: <b>${shift.date}</b></span><span class="history-duration">Період: ${h} год ${m} хв ${s} сек</span></div>`;
         }).join('');
       }
-
       let todayTotalSec = 0;
       let yesterdayTotalSec = 0;
-
-      shifts.forEach(shift => {
-        if (shift.date === todayStr) todayTotalSec += shift.duration_seconds;
-        if (shift.date === yesterdayStr) yesterdayTotalSec += shift.duration_seconds;
+      shifts.forEach(s => {
+        if (s.date === todayStr) todayTotalSec += s.duration_seconds;
+        if (s.date === yesterdayStr) yesterdayTotalSec += s.duration_seconds;
       });
-
-      if (isOnDuty && shiftStartTime > 0) {
-        const activeSeconds = Math.floor((Date.now() - shiftStartTime) / 1000);
-        todayTotalSec += activeSeconds;
-      }
-
+      if (isOnDuty && shiftStartTime > 0) { todayTotalSec += Math.floor((Date.now() - shiftStartTime) / 1000); }
       document.getElementById('todayTime').textContent = formatTime(todayTotalSec);
       document.getElementById('yesterdayTime').textContent = formatTime(yesterdayTotalSec);
     }
 
-    function formatTime(totalSec) {
-      const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
-      const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
-      const s = String(totalSec % 60).padStart(2, '0');
+    function formatTime(sec) {
+      const h = String(Math.floor(sec / 3600)).padStart(2, '0');
+      const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
       return `${h}:${m}:${s}`;
     }
 
-    function logout() {
-      localStorage.clear();
-      window.location.href = 'login.html';
-    }
-
+    function logout() { localStorage.clear(); window.location.href = 'login.html'; }
     loadShiftsHistory();
-
-    setInterval(() => {
-      if (isOnDuty) {
-        loadShiftsHistory();
-      }
-    }, 1000);
+    setInterval(() => { if (isOnDuty) loadShiftsHistory(); }, 1000);
   </script>
 </body>
 </html>
