@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Панель керування — UGTA</title>
+  <title>Панель керівництва — UGTA</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
@@ -13,21 +13,23 @@
     .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
     .back-link { color: #58a6ff; text-decoration: none; font-weight: 500; font-size: 14px; }
     .back-link:hover { text-decoration: underline; }
-    .leaderboard-btn { background: #1f6feb; color: #fff; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.2s; }
-    .leaderboard-btn:hover { background: #388bfd; }
+    .nav-buttons { display: flex; gap: 10px; }
+    .btn-link { background: #161b22; border: 1px solid #30363d; color: #fff; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.2s; }
+    .btn-link:hover { background: #1f293d; }
+    .btn-link.active { background: #1f6feb; border-color: #1f6feb; }
 
     h1 { color: #fff; font-size: 24px; font-weight: 700; margin-bottom: 20px; }
 
     /* Картки статистики */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    .stat-card { background: #121721; border: 1px solid #1e2638; border-radius: 12px; padding: 20px; }
+    .stat-card { background: #121721; border: 1px solid #1e2638; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
     .stat-title { color: #8b949e; font-size: 13px; font-weight: 500; margin-bottom: 8px; }
     .stat-value { color: #fff; font-size: 26px; font-weight: 700; }
     .stat-sub { color: #8b949e; font-size: 12px; margin-top: 5px; }
 
     /* Таблиця */
     .section-title { color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 12px; }
-    .table-wrapper { width: 100%; overflow-x: auto; background: #121721; border-radius: 12px; border: 1px solid #1e2638; }
+    .table-wrapper { width: 100%; overflow-x: auto; background: #121721; border-radius: 12px; border: 1px solid #1e2638; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     .table { width: 100%; border-collapse: collapse; min-width: 600px; }
     .table th, .table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid #1e2638; font-size: 13px; }
     .table th { color: #8b949e; font-size: 12px; font-weight: 600; background: #161b22; }
@@ -41,18 +43,21 @@
 
   <div class="main-container">
     <div class="top-nav">
-      <a href="index.html" class="back-link">← На головну</a>
-      <a href="leaderboard.html" class="leaderboard-btn">Перейти до лідерборду 🏆</a>
+      <a href="index.html" class="back-link">← На головну панель</a>
+      <div class="nav-buttons">
+        <a href="admin.html" class="btn-link active">Керівництво</a>
+        <a href="leaderboard.html" class="btn-link">Лідерборд 🏆</a>
+      </div>
     </div>
 
-    <h1>Панель керування</h1>
+    <h1>Панель керівництва (Реальний час)</h1>
 
     <!-- Картки статистики -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-title">Зараз онлайн 👤</div>
         <div class="stat-value" id="onlineCount">0</div>
-        <div class="stat-sub">Активних змін у момент</div>
+        <div class="stat-sub">Активних змін у даний момент</div>
       </div>
     </div>
 
@@ -92,9 +97,9 @@
       }
     }
 
-    // Слухаємо зміни в реальному часі
+    // Автоматичне оновлення даних в реальному часі
     subscribeToShifts((shifts) => {
-      // Фільтруємо зміни, які ще не завершені (де немає часу завершення або статус online)
+      // Фільтруємо зміни, які ще тривають (де немає end_time або статус Online)
       const activeShifts = shifts.filter(shift => !shift.end_time || shift.status === 'Online');
 
       document.getElementById('onlineCount').innerText = activeShifts.length;
