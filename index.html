@@ -153,9 +153,17 @@
         updateShiftUI();
       } else {
         const durationSec = Math.max(1, Math.floor((currentTime - shiftStartTime) / 1000));
-        let shifts = JSON.parse(localStorage.getItem('ugta_shifts_' + nick) || '[]');
-        shifts.unshift({ date: todayStr, duration_seconds: durationSec });
-        localStorage.setItem('ugta_shifts_' + nick, JSON.stringify(shifts));
+        
+        // Зберігаємо в спільний масив усіх змін для лідерборду та історії
+        let allShifts = JSON.parse(localStorage.getItem('ugta_all_shifts_data') || '[]');
+        allShifts.unshift({
+          nick: nick,
+          server: server,
+          date: todayStr,
+          duration_seconds: durationSec
+        });
+        localStorage.setItem('ugta_all_shifts_data', JSON.stringify(allShifts));
+
         isOnDuty = false;
         localStorage.removeItem('ugta_is_on_duty_' + nick);
         localStorage.removeItem('ugta_shift_start_' + nick);
@@ -165,10 +173,14 @@
     }
 
     function loadShiftsHistory() {
-      const shifts = JSON.parse(localStorage.getItem('ugta_shifts_' + nick) || '[]');
+      const allData = JSON.parse(localStorage.getItem('ugta_all_shifts_data') || '[]');
+      // Фільтруємо зміни тільки поточного користувача для його особистої панелі
+      const shifts = allData.filter(s => s.nick === nick);
+      
       const historyList = document.getElementById('historyList');
-      if (shifts.length === 0) { historyList.innerHTML = `<div style="color: #8b949e; font-size: 14px;">Ще немає завершених змін.</div>`; } 
-      else {
+      if (shifts.length === 0) { 
+        historyList.innerHTML = `<div style="color: #8b949e; font-size: 14px;">Ще немає завершених змін.</div>`; 
+      } else {
         historyList.innerHTML = shifts.slice(0, 10).map(shift => {
           const h = Math.floor(shift.duration_seconds / 3600);
           const m = Math.floor((shift.duration_seconds % 3600) / 60);
@@ -176,13 +188,18 @@
           return `<div class="history-item"><span class="history-date">Дата: <b>${shift.date}</b></span><span class="history-duration">Період: ${h} год ${m} хв ${s} сек</span></div>`;
         }).join('');
       }
+
       let todayTotalSec = 0;
       let yesterdayTotalSec = 0;
       shifts.forEach(s => {
         if (s.date === todayStr) todayTotalSec += s.duration_seconds;
         if (s.date === yesterdayStr) yesterdayTotalSec += s.duration_seconds;
       });
-      if (isOnDuty && shiftStartTime > 0) { todayTotalSec += Math.floor((Date.now() - shiftStartTime) / 1000); }
+
+      if (isOnDuty && shiftStartTime > 0) { 
+        todayTotalSec += Math.floor((Date.now() - shiftStartTime) / 1000); 
+      }
+
       document.getElementById('todayTime').textContent = formatTime(todayTotalSec);
       document.getElementById('yesterdayTime').textContent = formatTime(yesterdayTotalSec);
     }
@@ -194,7 +211,12 @@
       return `${h}:${m}:${s}`;
     }
 
-    function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    function logout() { 
+      // Не видаляємо ugta_all_shifts_data, щоб лідерборд не стирався при виході з акаунта
+      localStorage.removeItem('ugta_current_user');
+      window.location.href = 'login.html'; 
+    }
+
     loadShiftsHistory();
     setInterval(() => { if (isOnDuty) loadShiftsHistory(); }, 1000);
   </script>
