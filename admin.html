@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Панель керування — UGTA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: #0b0e14; color: #c9d1d9; padding: 20px; }
+    .main-container { max-width: 1000px; margin: 0 auto; }
+    
+    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .back-link { color: #58a6ff; text-decoration: none; font-weight: 500; font-size: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    .leaderboard-btn { background: #1f6feb; color: #fff; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.2s; }
+    .leaderboard-btn:hover { background: #388bfd; }
+
+    h1 { color: #fff; font-size: 24px; font-weight: 700; margin-bottom: 20px; }
+
+    /* Картки статистики */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
+    .stat-card { background: #121721; border: 1px solid #1e2638; border-radius: 12px; padding: 20px; }
+    .stat-title { color: #8b949e; font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+    .stat-value { color: #fff; font-size: 26px; font-weight: 700; }
+    .stat-sub { color: #8b949e; font-size: 12px; margin-top: 5px; }
+
+    /* Таблиця */
+    .section-title { color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+    .table-wrapper { width: 100%; overflow-x: auto; background: #121721; border-radius: 12px; border: 1px solid #1e2638; }
+    .table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    .table th, .table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid #1e2638; font-size: 13px; }
+    .table th { color: #8b949e; font-size: 12px; font-weight: 600; background: #161b22; }
+    
+    .server-badge { padding: 3px 8px; border-radius: 6px; border: 1px solid; font-size: 11px; font-weight: 600; display: inline-block; }
+    .status-online { background: rgba(47, 179, 68, 0.15); color: #3fb950; border: 1px solid rgba(47, 179, 68, 0.4); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+    .empty-row { text-align: center; color: #8b949e; padding: 30px !important; }
+  </style>
+</head>
+<body>
+
+  <div class="main-container">
+    <div class="top-nav">
+      <a href="index.html" class="back-link">← На головну</a>
+      <a href="leaderboard.html" class="leaderboard-btn">Перейти до лідерборду 🏆</a>
+    </div>
+
+    <h1>Панель керування</h1>
+
+    <!-- Картки статистики -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">Зараз онлайн 👤</div>
+        <div class="stat-value" id="onlineCount">0</div>
+        <div class="stat-sub">Активних змін у момент</div>
+      </div>
+    </div>
+
+    <div class="section-title">Користувачі онлайн</div>
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Користувач</th>
+            <th>Сервер</th>
+            <th>Початок</th>
+            <th>Тривалість</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody id="activeShiftsBody">
+          <tr><td colspan="5" class="empty-row">Завантаження даних...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script type="module">
+    import { subscribeToShifts, getRoleColor } from './data.js';
+
+    function getServerBadgeStyle(serverNum) {
+      const s = String(serverNum || '').replace(/^0+/, '');
+      switch(s) {
+        case '1': return 'color: #ff922b; background: rgba(255, 146, 43, 0.15); border-color: rgba(255, 146, 43, 0.4);';
+        case '2': return 'color: #33b1ff; background: rgba(51, 177, 255, 0.15); border-color: rgba(51, 177, 255, 0.4);';
+        case '3': return 'color: #2fb344; background: rgba(47, 179, 68, 0.15); border-color: rgba(47, 179, 68, 0.4);';
+        case '4': return 'color: #9775fa; background: rgba(151, 117, 250, 0.15); border-color: rgba(151, 117, 250, 0.4);';
+        case '5': return 'color: #f06595; background: rgba(240, 101, 149, 0.15); border-color: rgba(240, 101, 149, 0.4);';
+        case '6': return 'color: #12b886; background: rgba(18, 184, 134, 0.15); border-color: rgba(18, 184, 134, 0.4);';
+        case '7': return 'color: #4dabf7; background: rgba(77, 171, 247, 0.15); border-color: rgba(77, 171, 247, 0.4);';
+        default: return 'color: #8b949e; background: rgba(139, 148, 158, 0.15); border-color: rgba(139, 148, 158, 0.4);';
+      }
+    }
+
+    // Слухаємо зміни в реальному часі
+    subscribeToShifts((shifts) => {
+      // Фільтруємо зміни, які ще не завершені (де немає часу завершення або статус online)
+      const activeShifts = shifts.filter(shift => !shift.end_time || shift.status === 'Online');
+
+      document.getElementById('onlineCount').innerText = activeShifts.length;
+      const tbody = document.getElementById('activeShiftsBody');
+
+      if (activeShifts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="empty-row">Немає активних змін у даний момент.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = activeShifts.map(shift => {
+        const roleColor = getRoleColor(shift.role);
+        const serverNum = String(shift.server || '1').padStart(2, '0');
+        const serverStyle = getServerBadgeStyle(shift.server);
+
+        return `
+          <tr>
+            <td>
+              <b>${shift.nick || 'Невідомо'}</b>
+              <span style="color: ${roleColor}; font-size: 11px; font-weight: 600; display: block; margin-top: 2px;">${shift.role || 'Модератор'}</span>
+            </td>
+            <td><span class="server-badge" style="${serverStyle}">Сервер ${serverNum}</span></td>
+            <td>${shift.start_time || '-'}</td>
+            <td>${shift.duration || '0 год. 0 хв.'}</td>
+            <td><span class="status-online">Online</span></td>
+          </tr>
+        `;
+      }).join('');
+    });
+  </script>
+</body>
+</html>
