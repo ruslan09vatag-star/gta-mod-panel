@@ -156,13 +156,32 @@
     .role-zktp { background: #3d2b1e; color: #d29922; border: 1px solid rgba(210, 153, 34, 0.3); }
     .role-ktp { background: #3d1e1e; color: #f85149; border: 1px solid rgba(248, 81, 73, 0.3); }
 
-    /* --- СТИЛЬ ДЛЯ КАРТИНКИ-ЛОГОТИПА СЕРВЕРА --- */
-    .server-logo-img {
-      height: 32px;
-      width: auto;
-      display: inline-block;
-      vertical-align: middle;
-      object-fit: contain;
+    /* === ВІДТВОРЕННЯ ОРИГІНАЛЬНОГО ЛОГОТИПА ЩИТА ЧЕРЕЗ CSS === */
+    .ugta-server-shield {
+      background: #000000;
+      color: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px 10px 10px;
+      clip-path: polygon(0 0, 100% 0, 100% 80%, 50% 100%, 0 80%);
+      font-style: italic;
+      font-weight: 900;
+      user-select: none;
+      line-height: 1;
+      border-top: 1px solid #333;
+    }
+
+    .ugta-server-shield .txt-serv {
+      font-size: 11px;
+      letter-spacing: -0.5px;
+      margin-right: 3px;
+      color: #ffffff;
+    }
+
+    .ugta-server-shield .txt-num {
+      font-size: 12px;
+      color: #ffffff;
     }
 
     .profile-dropdown {
@@ -456,21 +475,15 @@
     const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
     const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-    // ПЕРЕЛІК ПОСИЛАНЬ НА КАРТИНКИ-ЛОГОТИПИ СЕРВЕРІВ UGTA
-    const serverLogoImages = {
-      '01': 'https://ukraine-gta.com.ua/assets/img/servers/server-1.png',
-      '02': 'https://ukraine-gta.com.ua/assets/img/servers/server-2.png',
-      '03': 'https://ukraine-gta.com.ua/assets/img/servers/server-3.png',
-      '04': 'https://ukraine-gta.com.ua/assets/img/servers/server-4.png',
-      '05': 'https://ukraine-gta.com.ua/assets/img/servers/server-5.png',
-      '06': 'https://ukraine-gta.com.ua/assets/img/servers/server-6.png',
-      '07': 'https://ukraine-gta.com.ua/assets/img/servers/server-7.png'
-    };
-
+    // ГЕНЕРАЦІЯ ОРИГІНАЛЬНОГО ЛОГОТИПА ЧЕРЕЗ CSS
     function getServerLogoHTML(serverNum) {
       const numStr = String(serverNum).padStart(2, '0');
-      const imgUrl = serverLogoImages[numStr] || serverLogoImages['05'];
-      return `<img src="${imgUrl}" alt="Сервер ${numStr}" class="server-logo-img" onerror="this.onerror=null; this.outerHTML='<span style=\'font-weight:bold; color:#fff;\'>Сервер ${numStr}</span>';"/>`;
+      return `
+        <div class="ugta-server-shield">
+          <span class="txt-serv">Серв</span>
+          <span class="txt-num">${numStr}</span>
+        </div>
+      `;
     }
 
     let currentUser = null;
@@ -543,7 +556,7 @@
       else if (rawRole.includes('КТП')) roleElem.classList.add('role-ktp');
       else roleElem.classList.add('role-sm');
 
-      // Відображення оригінального логотипа сервера біля ніка
+      // Відображення логотипа сервера біля ніка
       const srvContainer = document.getElementById('userServerContainer');
       const srvNum = user.server || '05';
       srvContainer.innerHTML = getServerLogoHTML(srvNum);
