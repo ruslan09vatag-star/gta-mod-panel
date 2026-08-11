@@ -7,32 +7,44 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    body { background-color: #0b0e14; color: #c9d1d9; padding: 40px; }
+    body { background-color: #0b0e14; color: #c9d1d9; padding: 15px; }
     .main-container { max-width: 900px; margin: 0 auto; }
     
-    .back-link { color: #58a6ff; text-decoration: none; display: inline-block; margin-bottom: 20px; font-weight: 500; transition: 0.2s; }
+    .back-link { color: #58a6ff; text-decoration: none; display: inline-block; margin-bottom: 15px; font-weight: 500; font-size: 14px; transition: 0.2s; }
     .back-link:hover { text-decoration: underline; }
 
-    h1 { color: #fff; margin-bottom: 20px; font-size: 26px; font-weight: 700; }
+    h1 { color: #fff; margin-bottom: 15px; font-size: 22px; font-weight: 700; }
 
-    .controls-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+    .controls-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
 
-    .tabs { display: flex; gap: 10px; }
-    .tab-btn { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 10px 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; font-size: 14px; }
+    .tabs { display: flex; gap: 6px; width: 100%; }
+    .tab-btn { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; font-size: 13px; flex: 1; text-align: center; }
     .tab-btn:hover { background: #1f293d; color: #fff; }
     .tab-btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; box-shadow: 0 4px 15px rgba(31,111,235,0.3); }
 
-    .server-select { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; outline: none; }
+    .server-select { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 10px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; outline: none; width: 100%; }
     .server-select:focus { border-color: #1f6feb; }
 
-    .table { width: 100%; border-collapse: collapse; background: #121721; border-radius: 12px; overflow: hidden; border: 1px solid #1e2638; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-    .table th, .table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid #1e2638; font-size: 14px; }
-    .table th { color: #8b949e; font-size: 13px; font-weight: 600; background: #161b22; }
-    .rank-cell { font-weight: 700; color: #58a6ff; width: 60px; }
-    .time-cell { font-family: monospace; font-weight: 600; color: #3fb950; font-size: 15px; }
-    .server-badge { background: #1f293d; color: #58a6ff; padding: 2px 8px; border-radius: 6px; border: 1px solid #30363d; font-size: 12px; font-weight: 500; }
-    .role-badge { font-size: 12px; font-weight: 600; display: block; margin-top: 2px; }
-    .empty-row { text-align: center; color: #8b949e; padding: 30px !important; }
+    .table-wrapper { width: 100%; overflow-x: auto; background: #121721; border-radius: 12px; border: 1px solid #1e2638; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .table { width: 100%; border-collapse: collapse; min-width: 500px; }
+    .table th, .table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #1e2638; font-size: 13px; }
+    .table th { color: #8b949e; font-size: 12px; font-weight: 600; background: #161b22; }
+    .rank-cell { font-weight: 700; color: #58a6ff; width: 50px; }
+    .time-cell { font-family: monospace; font-weight: 600; color: #3fb950; font-size: 14px; }
+    .server-badge { background: #1f293d; color: #58a6ff; padding: 2px 6px; border-radius: 6px; border: 1px solid #30363d; font-size: 11px; font-weight: 500; }
+    .role-badge { font-size: 11px; font-weight: 600; display: block; margin-top: 2px; }
+    .empty-row { text-align: center; color: #8b949e; padding: 25px !important; }
+
+    @media(min-width: 768px) {
+      body { padding: 40px; }
+      h1 { font-size: 26px; margin-bottom: 20px; }
+      .controls-container { flex-direction: row; justify-content: space-between; align-items: center; }
+      .tabs { width: auto; gap: 10px; }
+      .tab-btn { padding: 10px 16px; font-size: 14px; flex: unset; }
+      .server-select { width: auto; font-size: 14px; }
+      .table th, .table td { padding: 16px 20px; font-size: 14px; }
+      .table th { font-size: 13px; }
+    }
   </style>
 </head>
 <body>
@@ -60,32 +72,27 @@
       </select>
     </div>
 
-    <table class="table">
-      <thead>
-        <tr>
-          <th>№</th>
-          <th>Модератор</th>
-          <th>Сервер</th>
-          <th>Час на зміні</th>
-        </tr>
-      </thead>
-      <tbody id="leaderboardBody">
-        <!-- Дані завантажуються динамічно -->
-      </tbody>
-    </table>
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>Модератор</th>
+            <th>Сервер</th>
+            <th>Час на зміні</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody">
+          <!-- Дані завантажуються динамічно -->
+        </tbody>
+      </table>
+    </div>
   </div>
 
+  <!-- Підключаємо загальний файл даних -->
+  <script src="data.js"></script>
   <script>
     let currentPeriod = 'today';
-
-    function getRoleColor(r) {
-      if (!r) return '#f0883e';
-      const lower = r.toLowerCase();
-      if (lower.includes('ктп')) return '#f85149';   // Червоний
-      if (lower.includes('зктп')) return '#3fb950';  // Зелений
-      if (lower.includes('s.m') || lower.includes('sm')) return '#bc8cff'; // Фіолетовий
-      return '#f0883e'; // Оранжевий (Модератор)
-    }
 
     function setPeriod(period, event) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -95,7 +102,7 @@
     }
 
     function renderLeaderboard() {
-      const data = JSON.parse(localStorage.getItem('ugta_all_shifts_data') || '[]');
+      const data = getAllShifts();
       const selectedServer = document.getElementById('serverFilter').value;
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
@@ -103,9 +110,11 @@
       const stats = {};
 
       data.forEach(shift => {
-        // Фільтр по серверу (порівнюємо без урахування пробілів/нулів для надійності)
+        if (!shift.nick) return;
+
+        // Фільтр по серверу
         if (selectedServer !== 'all') {
-          const shiftServerClean = String(shift.server).replace(/^0+/, '');
+          const shiftServerClean = String(shift.server || '').replace(/^0+/, '');
           const selectedClean = String(selectedServer).replace(/^0+/, '');
           if (shiftServerClean !== selectedClean) return;
         }
@@ -123,23 +132,25 @@
         }
 
         if (match) {
-          if (!stats[shift.nick]) {
-            stats[shift.nick] = { time: 0, server: shift.server, role: shift.role || 'Модератор' };
+          const key = shift.nick.toLowerCase();
+          if (!stats[key]) {
+            stats[key] = { originalName: shift.nick, time: 0, server: shift.server, role: shift.role || 'Модератор' };
           }
-          stats[shift.nick].time += shift.duration_seconds;
+          stats[key].time += shift.duration_seconds;
+          if (shift.role) stats[key].role = shift.role;
         }
       });
 
-      const sortedUsers = Object.keys(stats).sort((a, b) => stats[b].time - stats[a].time);
+      const sortedKeys = Object.keys(stats).sort((a, b) => stats[b].time - stats[a].time);
       const tbody = document.getElementById('leaderboardBody');
 
-      if (sortedUsers.length === 0) {
+      if (sortedKeys.length === 0) {
         tbody.innerHTML = `<tr><td colspan="4" class="empty-row">За вибраний період немає завершених змін.</td></tr>`;
         return;
       }
 
-      tbody.innerHTML = sortedUsers.map((nick, index) => {
-        const userStats = stats[nick];
+      tbody.innerHTML = sortedKeys.map((key, index) => {
+        const userStats = stats[key];
         const sec = userStats.time;
         const h = Math.floor(sec / 3600);
         const m = Math.floor((sec % 3600) / 60);
@@ -151,7 +162,7 @@
           <tr>
             <td class="rank-cell">#${index + 1}</td>
             <td>
-              <b>${nick}</b>
+              <b>${userStats.originalName}</b>
               <span class="role-badge" style="color: ${roleColor};">${userStats.role}</span>
             </td>
             <td><span class="server-badge">Сервер ${userStats.server}</span></td>
