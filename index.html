@@ -12,7 +12,7 @@
 
     .top-bar { display: flex; justify-content: space-between; align-items: center; background: #121721; border: 1px solid #1e2638; padding: 12px 16px; border-radius: 14px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     
-    /* Випадаюче меню профілю (виправлено зону наведення) */
+    /* Випадаюче меню профілю */
     .user-profile-wrapper { position: relative; display: inline-block; cursor: pointer; padding-bottom: 5px; margin-bottom: -5px; }
     .user-info { display: flex; align-items: center; gap: 12px; }
     .user-avatar { background: linear-gradient(135deg, #1f6feb, #1158c7); color: #fff; font-weight: 700; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 10px rgba(31,111,235,0.3); background-size: cover; background-position: center; }
@@ -148,12 +148,12 @@
       <div class="modal-title">Налаштування профілю</div>
       
       <div class="modal-input-group">
-        <label class="modal-label">Посилання на аватарку (URL)</label>
-        <input type="text" id="avatarInput" class="modal-input" placeholder="https://example.com/avatar.png">
+        <label class="modal-label">Вибрати аватарку з комп'ютера</label>
+        <input type="file" id="avatarFile" class="modal-input" accept="image/*" style="padding: 7px; cursor: pointer;">
       </div>
 
       <div class="modal-input-group">
-        <label class="modal-label">Новий пароль</label>
+        <label class="modal-label">Новий пароль (залиште порожнім, якщо не міняєте)</label>
         <input type="password" id="passwordInput" class="modal-input" placeholder="Введіть новий пароль">
       </div>
 
@@ -309,8 +309,8 @@
     // Функції для роботи з модальним вікном налаштувань
     window.openSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'flex';
-      document.getElementById('avatarInput').value = localStorage.getItem('ugta_avatar_' + nick) || '';
-      document.getElementById('passwordInput').value = '';
+      document.getElementById('avatarFile').value = ''; // очищуємо вибір файлу
+      document.getElementById('passwordInput').value = ''; // очищуємо поле пароля
     }
 
     window.closeSettingsModal = function() {
@@ -318,26 +318,46 @@
     }
 
     window.saveSettings = function() {
-      const newAvatar = document.getElementById('avatarInput').value.trim();
+      const fileInput = document.getElementById('avatarFile');
       const newPassword = document.getElementById('passwordInput').value.trim();
 
-      if (newAvatar) {
-        localStorage.setItem('ugta_avatar_' + nick, newAvatar);
-        avatarEl.style.backgroundImage = `url('${newAvatar}')`;
-        avatarEl.textContent = '';
+      // Функція завершення збереження
+      const applyChanges = (avatarData) => {
+        if (avatarData !== undefined) {
+          if (avatarData) {
+            localStorage.setItem('ugta_avatar_' + nick, avatarData);
+            avatarEl.style.backgroundImage = `url('${avatarData}')`;
+            avatarEl.textContent = '';
+          } else {
+            localStorage.removeItem('ugta_avatar_' + nick);
+            avatarEl.style.backgroundImage = 'none';
+            avatarEl.textContent = nick.charAt(0).toUpperCase();
+          }
+        }
+
+        // Змінюємо пароль ТІЛЬКИ якщо користувач щось туди ввів
+        if (newPassword) {
+          currentUser.password = newPassword;
+          localStorage.setItem('ugta_current_user', JSON.stringify(currentUser));
+          alert('Пароль та налаштування успішно збережено!');
+        } else {
+          alert('Налаштування успішно збережено!');
+        }
+
+        closeSettingsModal();
+      };
+
+      // Якщо вибрано файл з ПК, зчитуємо його
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          applyChanges(e.target.result);
+        };
+        reader.readAsDataURL(fileInput.files[0]);
       } else {
-        localStorage.removeItem('ugta_avatar_' + nick);
-        avatarEl.style.backgroundImage = 'none';
-        avatarEl.textContent = nick.charAt(0).toUpperCase();
+        // Якщо файл не вибирали, передаємо undefined (аватар не міняється)
+        applyChanges(undefined);
       }
-
-      if (newPassword) {
-        currentUser.password = newPassword;
-        localStorage.setItem('ugta_current_user', JSON.stringify(currentUser));
-        alert('Пароль успішно змінено!');
-      }
-
-      closeSettingsModal();
     }
 
     window.logout = function() { 
