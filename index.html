@@ -14,9 +14,11 @@
     /* Верхня панель */
     .top-bar { display: flex; justify-content: space-between; align-items: center; background: #121721; border: 1px solid #1e2638; padding: 12px 24px; border-radius: 12px; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
     .user-info { display: flex; align-items: center; gap: 12px; }
-    .user-avatar { background: #1f6feb; color: #fff; font-weight: 700; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 15px; }
-    .user-name { font-weight: 600; color: #fff; font-size: 15px; }
-    .user-role { background: #21262d; color: #8b949e; padding: 2px 8px; border-radius: 6px; font-size: 12px; }
+    
+    /* Великий квадрат для номера сервера */
+    .user-avatar { background: #1f6feb; color: #fff; font-weight: 700; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 18px; }
+    
+    .user-name { font-weight: 600; color: #fff; font-size: 16px; }
     
     .nav-links { display: flex; gap: 8px; align-items: center; }
     .nav-btn { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: 0.2s; }
@@ -56,13 +58,13 @@
 <body>
 
   <div class="main-container">
-    <!-- Шапка з реальними даними з бази -->
+    <!-- Шапка сайту -->
     <div class="top-bar">
       <div class="user-info">
-        <div class="user-avatar" id="userAvatar">02</div>
+        <!-- У великий квадрат виводимо номер сервера з бази -->
+        <div class="user-avatar" id="serverBox">02</div>
         <div>
           <div class="user-name" id="userName">Завантаження...</div>
-          <span class="user-role" id="userRole">Сервер --</span>
         </div>
       </div>
       <div class="nav-links">
@@ -82,7 +84,7 @@
       <button id="shiftToggleBtn" class="action-btn btn-start" onclick="toggleShift()">Почати зміну</button>
     </div>
 
-    <!-- Картки сьогодні / вчора -->
+    <!-- Статистика сьогодні / вчора -->
     <div class="stats-grid">
       <div class="stat-box">
         <div class="stat-title">Сьогодні</div>
@@ -113,10 +115,9 @@
       window.location.href = 'login.html';
     }
 
-    // Виводимо реальний нік, номер акаунта та сервер з бази профілю
+    // Виводимо нік та номер сервера у великий квадрат, прибравши зайвий текст
     document.getElementById('userName').textContent = currentUser.nick || 'Модератор';
-    document.getElementById('userRole').textContent = `Сервер ${currentUser.server || '02'}`;
-    document.getElementById('userAvatar').textContent = currentUser.account_number ? currentUser.account_number.slice(-2) : '02';
+    document.getElementById('serverBox').textContent = currentUser.server || '02';
 
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
@@ -159,24 +160,20 @@
         localStorage.setItem('ugta_shift_start', shiftStartTime);
         updateShiftUI();
       } else {
-        // Закінчити зміну
-        const durationSec = Math.floor((currentTime - shiftStartTime) / 1000);
+        // Закінчити зміну (тепер зберігається будь-який час без обмежень)
+        const durationSec = Math.max(1, Math.floor((currentTime - shiftStartTime) / 1000));
         
-        if (durationSec < 5) {
-          alert('Зміна занадто коротка і не була збережена.');
-        } else {
-          const { error } = await dbClient.from('shifts').insert([{
-            user_id: currentUser.id,
-            duration_seconds: durationSec,
-            date: todayStr
-          }]);
+        const { error } = await dbClient.from('shifts').insert([{
+          user_id: currentUser.id,
+          duration_seconds: durationSec,
+          date: todayStr
+        }]);
 
-          if (error) {
-            alert('Помилка збереження зміни у базу!');
-          } else {
-            alert(`Зміну завершено! Час роботи: ${Math.floor(durationSec / 60)} хв.`);
-            loadShiftsHistory(); // Оновлюємо історію одразу
-          }
+        if (error) {
+          alert('Помилка збереження зміни у базу!');
+        } else {
+          alert(`Зміну завершено! Додано до історії: ${Math.floor(durationSec / 60)} хв ${durationSec % 60} сек.`);
+          loadShiftsHistory();
         }
 
         isOnDuty = false;
@@ -186,7 +183,7 @@
       }
     }
 
-    // Завантаження історії останніх змін з бази
+    // Завантаження історії змін
     async function loadShiftsHistory() {
       const { data, error } = await dbClient
         .from('shifts')
@@ -217,12 +214,11 @@
         return `
           <div class="history-item">
             <span class="history-date">Дата: <b>${shift.date}</b></span>
-            <span class="history-duration">Тривалість: ${timeFormatted}</span>
+            <span class="history-duration">Період: ${timeFormatted}</span>
           </div>
         `;
       }).join('');
 
-      // Форматування годин для блоків "Сьогодні" та "Вчора"
       document.getElementById('todayTime').textContent = formatTime(todayTotalSec);
       document.getElementById('yesterdayTime').textContent = formatTime(yesterdayTotalSec);
     }
@@ -239,7 +235,6 @@
       window.location.href = 'login.html';
     }
 
-    // Завантажуємо історію при відкритті сторінки
     loadShiftsHistory();
   </script>
 </body>
