@@ -1,155 +1,47 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>UGTA Moderation — Вхід</title>
-  
-  <!-- Підключення шрифту Roboto -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Підключення Supabase JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // 1. Дані Supabase
+  const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
+  const SUPABASE_KEY = 'ВАШ_SUPABASE_ANON_KEY'; // Поставте свій ключ сюди!
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
+  const loginForm = document.getElementById('loginForm');
+  const errorMessage = document.getElementById('errorMessage');
+
+  // 2. Обробка натискання кнопки
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errorMessage.style.display = 'none';
+
+    const accountNumber = document.getElementById('accountNumber').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    // Запит до бази Supabase
+    const { data: user, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('account_number', accountNumber)
+      .eq('password', password)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Помилка:', error);
+      showError('❌ Помилка з\'єднання з базою даних.');
+      return;
     }
 
-    body {
-      background-color: #0d1117;
-      color: #c9d1d9;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+    if (!user) {
+      showError('❌ Невірний номер акаунта або пароль!');
+      return;
     }
 
-    .auth-container {
-      background: #161b22;
-      border: 1px solid #30363d;
-      border-radius: 12px;
-      padding: 40px;
-      width: 100%;
-      max-width: 400px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    }
+    // Якщо все правильно
+    localStorage.setItem('userSession', JSON.stringify(user));
+    alert(`Ласкаво просимо, ${user.nick}!`);
+    window.location.href = '/dashboard.html'; // Вкажіть потрібну сторінку
+  });
 
-    .auth-header {
-      text-align: center;
-      margin-bottom: 28px;
-    }
-
-    .auth-header h1 {
-      color: #f0f6fc;
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .auth-header p {
-      color: #8b949e;
-      font-size: 14px;
-    }
-
-    .input-group {
-      margin-bottom: 20px;
-    }
-
-    .input-group label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      color: #8b949e;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 12px 16px;
-      background-color: #0d1117;
-      border: 1px solid #30363d;
-      border-radius: 8px;
-      color: #f0f6fc;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .input-group input:focus {
-      border-color: #58a6ff;
-      box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.15);
-    }
-
-    .login-btn {
-      width: 100%;
-      padding: 12px;
-      background-color: #238636;
-      border: none;
-      border-radius: 8px;
-      color: #ffffff;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background-color 0.2s ease;
-      margin-top: 10px;
-    }
-
-    .login-btn:hover {
-      background-color: #2ea043;
-    }
-
-    .login-btn:active {
-      background-color: #1f7f34;
-    }
-
-    #errorMessage {
-      color: #f85149;
-      font-size: 13px;
-      text-align: center;
-      margin-top: 16px;
-      display: none;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="auth-container">
-    <div class="auth-header">
-      <h1>Авторизація</h1>
-      <p>UGTA Moderation Panel</p>
-    </div>
-
-    <form id="loginForm">
-      <div class="input-group">
-        <label for="accountNumber">Номер акаунта</label>
-        <input 
-          type="text" 
-          id="accountNumber" 
-          placeholder="Введіть номер акаунта" 
-          required 
-          autocomplete="off"
-        />
-      </div>
-
-      <div class="input-group">
-        <label for="password">Пароль</label>
-        <input 
-          type="password" 
-          id="password" 
-          placeholder="Введіть пароль" 
-          required 
-        />
-      </div>
-
-      <button type="submit" class="login-btn" id="loginBtn">Увійти</button>
-      <div id="errorMessage"></div>
-    </form>
-  </div>
-
-  <script src="script.js"></script>
-</body>
-</html>
+  function showError(msg) {
+    errorMessage.textContent = msg;
+    errorMessage.style.display = 'block';
+  }
+</script>
