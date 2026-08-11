@@ -23,7 +23,6 @@ async function sendMessage(chatId, text) {
 }
 
 module.exports = async (req, res) => {
-  // Завжди повертаємо 200 OK для Telegram, щоб він не видавав помилок сервера
   try {
     if (req.method !== 'POST') {
       return res.status(200).json({ status: 'OK' });
@@ -47,8 +46,8 @@ module.exports = async (req, res) => {
       await sendMessage(chatId, 
         '👑 <b>Панель адміністратора UGTA</b>\n\n' +
         'Щоб створити акаунт модератора, надсилай:\n' +
-        '<code>/reg Нік Сервер Роль</code>\n\n' +
-        '<b>Приклад:</b>\n<code>/reg Петро_Іванов 05 Moderator</code>'
+        '<code>/reg Ім_я Прізвище Сервер Роль</code>\n\n' +
+        '<b>Приклад:</b>\n<code>/reg Руслан_Мандарин 05 Moderator</code>'
       );
       return res.status(200).json({ status: 'OK' });
     }
