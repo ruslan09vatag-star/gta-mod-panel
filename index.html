@@ -93,15 +93,11 @@
 
     <div class="section-title">Останні зміни</div>
     <div class="history-list" id="historyList">
-      <div style="color: #8b949e; font-size: 14px;">Завантаження історії...</div>
+      <div style="color: #8b949e; font-size: 14px;">Ще немає завершених змін.</div>
     </div>
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
-    const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
     const currentUser = JSON.parse(localStorage.getItem('ugta_current_user'));
     if (!currentUser) {
       window.location.href = 'login.html';
@@ -140,75 +136,69 @@
     }
     updateShiftUI();
 
-    async function toggleShift() {
+    function toggleShift() {
       const currentTime = Date.now();
 
       if (!isOnDuty) {
+        // Почати зміну
         isOnDuty = true;
         shiftStartTime = currentTime;
         localStorage.setItem('ugta_ugta_on_duty', 'true');
         localStorage.setItem('ugta_shift_start', shiftStartTime);
         updateShiftUI();
       } else {
+        // Закінчити зміну (зберігаємо навіть дуже короткі зміни)
         const durationSec = Math.max(1, Math.floor((currentTime - shiftStartTime) / 1000));
         
-        // Зберігаємо зміну за ніком користувача
-        const { error } = await dbClient.from('shifts').insert([{
-          nick: currentUser.nick,
-          duration_seconds: durationSec,
-          date: todayStr
-        }]);
+        // Отримуємо попередню історію або створюємо новий масив
+        let shifts = JSON.parse(localStorage.getItem('ugta_shifts_' + currentUser.nick) || '[]');
+        
+        shifts.unshift({
+          date: todayStr,
+          duration_seconds: durationSec
+        });
 
-        if (error) {
-          console.error(error);
-          alert('Помилка збереження зміни у базу! Перевірте підключення.');
-        } else {
-          loadShiftsHistory();
-        }
+        localStorage.setItem('ugta_shifts_' + currentUser.nick, JSON.stringify(shifts));
 
         isOnDuty = false;
         localStorage.removeItem('ugta_ugta_on_duty');
         localStorage.removeItem('ugta_shift_start');
         updateShiftUI();
+        loadShiftsHistory();
       }
     }
 
-    async function loadShiftsHistory() {
-      const { data, error } = await dbClient
-        .from('shifts')
-        .select('*')
-        .eq('nick', currentUser.nick)
-        .order('id', { ascending: false })
-        .limit(10);
-
+    function loadShiftsHistory() {
+      const shifts = JSON.parse(localStorage.getItem('ugta_shifts_' + currentUser.nick) || '[]');
       const historyList = document.getElementById('historyList');
 
-      if (error || !data || data.length === 0) {
+      if (shifts.length === 0) {
         historyList.innerHTML = `<div style="color: #8b949e; font-size: 14px;">Ще немає завершених змін.</div>`;
-        return;
+      } else {
+        historyList.innerHTML = shifts.slice(0, 10).map(shift => {
+          const hours = Math.floor(shift.duration_seconds / 3600);
+          const minutes = Math.floor((shift.duration_seconds % 3600) / 60);
+          const seconds = shift.duration_seconds % 60;
+          const timeFormatted = `${hours} год ${minutes} хв ${seconds} сек`;
+
+          return `
+            <div class="history-item">
+              <span class="history-date">Дата: <b>${shift.date}</b></span>
+              <span class="history-duration">Період: ${timeFormatted}</span>
+            </div>
+          `;
+        }).join('');
       }
 
       let todayTotalSec = 0;
       let yesterdayTotalSec = 0;
 
-      historyList.innerHTML = data.map(shift => {
-        const hours = Math.floor(shift.duration_seconds / 3600);
-        const minutes = Math.floor((shift.duration_seconds % 3600) / 60);
-        const seconds = shift.duration_seconds % 60;
-        const timeFormatted = `${hours} год ${minutes} хв ${seconds} сек`;
-
+      shifts.forEach(shift => {
         if (shift.date === todayStr) todayTotalSec += shift.duration_seconds;
         if (shift.date === yesterdayStr) yesterdayTotalSec += shift.duration_seconds;
+      });
 
-        return `
-          <div class="history-item">
-            <span class="history-date">Дата: <b>${shift.date}</b></span>
-            <span class="history-duration">Період: ${timeFormatted}</span>
-          </div>
-        `;
-      }).join('');
-
-      // Додаємо поточний час наживо до блоку "Сьогодні"
+      // Додаємо поточний час наживо до блоку "Сьогодні", якщо зараз іде зміна
       if (isOnDuty && shiftStartTime > 0) {
         const activeSeconds = Math.floor((Date.now() - shiftStartTime) / 1000);
         todayTotalSec += activeSeconds;
@@ -231,7 +221,8 @@
     }
 
     loadShiftsHistory();
-    // Оновлюємо таймер кожну секунду, якщо користувач на зміні
+
+    // Оновлюємо таймер та блок "Сьогодні" кожну секунду
     setInterval(() => {
       if (isOnDuty) {
         loadShiftsHistory();
