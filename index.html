@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UGTA Moderation — Вхід</title>
   
-  <!-- Підключення шрифту Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Підключення Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -102,10 +99,6 @@
       background-color: #2ea043;
     }
 
-    .login-btn:active {
-      background-color: #1f7f34;
-    }
-
     #errorMessage {
       color: #f85149;
       font-size: 13px;
@@ -123,14 +116,13 @@
       <p>UGTA Moderation Panel</p>
     </div>
 
-    <!-- autocomplete="off" і new-password прибирають підставлення пошти з браузера -->
     <form id="loginForm" autocomplete="off">
       <div class="input-group">
         <label for="accountNumber">Номер акаунта</label>
         <input 
           type="text" 
           id="accountNumber" 
-          name="mod_account_id_unique"
+          name="account_num_field"
           placeholder="Введіть номер акаунта" 
           required 
           autocomplete="off"
@@ -142,7 +134,7 @@
         <input 
           type="password" 
           id="password" 
-          name="mod_password_field_unique"
+          name="account_pass_field"
           placeholder="Введіть пароль" 
           required 
           autocomplete="new-password"
@@ -155,50 +147,61 @@
   </div>
 
   <script>
-    // 1. Ініціалізація Supabase
+    // 🔑 ВСТАВ СВІЙ СТРАВЖНІЙ КЛЮЧ АНОНІМНОСТІ ВІД SUPABASE СЮДИ:
     const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
-    const SUPABASE_KEY = 'ВСТАВ_СЮДИ_СВІЙ_SUPABASE_ANON_KEY'; 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = 'ТВІЙ_ANON_KEY_З_SUPABASE'; 
+
+    let supabase;
+
+    try {
+      if (window.supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch (err) {
+      console.error('Помилка ініціалізації Supabase:', err);
+    }
 
     const loginForm = document.getElementById('loginForm');
     const errorMessage = document.getElementById('errorMessage');
 
-    // 2. Обробка натискання кнопки входу
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
       errorMessage.style.display = 'none';
+
+      if (!supabase || SUPABASE_KEY.includes('ТВІЙ_ANON_KEY')) {
+        showError('❌ Вкажіть правильний SUPABASE_KEY у коді!');
+        return;
+      }
 
       const accountNumber = document.getElementById('accountNumber').value.trim();
       const password = document.getElementById('password').value.trim();
 
-      // Запит до таблиці profiles
-      const { data: user, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('account_number', accountNumber)
-        .eq('password', password)
-        .maybeSingle();
+      try {
+        const { data: user, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('account_number', accountNumber)
+          .eq('password', password)
+          .maybeSingle();
 
-      if (error) {
-        console.error('Помилка Supabase:', error);
-        showError('❌ Помилка з\'єднання з базою даних.');
-        return;
+        if (error) {
+          console.error('Помилка Supabase:', error);
+          showError('❌ Помилка з\'єднання з базою даних.');
+          return;
+        }
+
+        if (!user) {
+          showError('❌ Невірний номер акаунта або пароль!');
+          return;
+        }
+
+        localStorage.setItem('userSession', JSON.stringify(user));
+        alert(`Вітаємо, ${user.nick || 'модератор'}!`);
+
+      } catch (err) {
+        console.error(err);
+        showError('❌ Виникла помилка під час входу.');
       }
-
-      if (!user) {
-        showError('❌ Невірний номер акаунта або пароль!');
-        return;
-      }
-
-      // Зберігаємо сесію в пам'яті браузера
-      localStorage.setItem('userSession', JSON.stringify(user));
-
-      alert(`Успішний вхід! Вітаємо, ${user.nick || 'модератор'}!`);
-
-      // ЯКЩО Є СТОРІНКА ДЛЯ ПЕРЕХОДУ — розкоментуй потрібний рядок нижче:
-      // window.location.href = 'dashboard.html';
-      // window.location.href = 'main.html';
     });
 
     function showError(msg) {
