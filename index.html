@@ -306,11 +306,11 @@
       return `${h}:${m}:${s}`;
     }
 
-    // Функції для роботи з модальним вікном налаштувань
+    // Модальне вікно налаштувань
     window.openSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'flex';
-      document.getElementById('avatarFile').value = ''; // очищуємо вибір файлу
-      document.getElementById('passwordInput').value = ''; // очищуємо поле пароля
+      document.getElementById('avatarFile').value = '';
+      document.getElementById('passwordInput').value = '';
     }
 
     window.closeSettingsModal = function() {
@@ -321,7 +321,6 @@
       const fileInput = document.getElementById('avatarFile');
       const newPassword = document.getElementById('passwordInput').value.trim();
 
-      // Функція завершення збереження
       const applyChanges = (avatarData) => {
         if (avatarData !== undefined) {
           if (avatarData) {
@@ -335,10 +334,19 @@
           }
         }
 
-        // Змінюємо пароль ТІЛЬКИ якщо користувач щось туди ввів
         if (newPassword) {
+          // 1. Оновлюємо поточну сесію
           currentUser.password = newPassword;
           localStorage.setItem('ugta_current_user', JSON.stringify(currentUser));
+
+          // 2. Оновлюємо в загальному сховищі користувачів, якщо воно використовується
+          let allUsers = JSON.parse(localStorage.getItem('ugta_users') || '[]');
+          const userIndex = allUsers.findIndex(u => u.nick && u.nick.toLowerCase() === nick.toLowerCase());
+          if (userIndex !== -1) {
+            allUsers[userIndex].password = newPassword;
+            localStorage.setItem('ugta_users', JSON.stringify(allUsers));
+          }
+
           alert('Пароль та налаштування успішно збережено!');
         } else {
           alert('Налаштування успішно збережено!');
@@ -347,7 +355,6 @@
         closeSettingsModal();
       };
 
-      // Якщо вибрано файл з ПК, зчитуємо його
       if (fileInput.files && fileInput.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -355,7 +362,6 @@
         };
         reader.readAsDataURL(fileInput.files[0]);
       } else {
-        // Якщо файл не вибирали, передаємо undefined (аватар не міняється)
         applyChanges(undefined);
       }
     }
