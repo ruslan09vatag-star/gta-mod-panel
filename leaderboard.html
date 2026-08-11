@@ -31,7 +31,7 @@
     .rank-cell { font-weight: 700; color: #58a6ff; width: 60px; }
     .time-cell { font-family: monospace; font-weight: 600; color: #3fb950; font-size: 15px; }
     .server-badge { background: #1f293d; color: #58a6ff; padding: 2px 8px; border-radius: 6px; border: 1px solid #30363d; font-size: 12px; font-weight: 500; }
-    .role-badge { color: #8b949e; font-size: 12px; display: block; margin-top: 2px; }
+    .role-badge { font-size: 12px; font-weight: 600; display: block; margin-top: 2px; }
     .empty-row { text-align: center; color: #8b949e; padding: 30px !important; }
   </style>
 </head>
@@ -54,6 +54,9 @@
         <option value="02">Сервер 02</option>
         <option value="03">Сервер 03</option>
         <option value="04">Сервер 04</option>
+        <option value="05">Сервер 05</option>
+        <option value="06">Сервер 06</option>
+        <option value="07">Сервер 07</option>
       </select>
     </div>
 
@@ -75,6 +78,15 @@
   <script>
     let currentPeriod = 'today';
 
+    function getRoleColor(r) {
+      if (!r) return '#f0883e';
+      const lower = r.toLowerCase();
+      if (lower.includes('ктп')) return '#f85149';   // Червоний
+      if (lower.includes('зктп')) return '#3fb950';  // Зелений
+      if (lower.includes('s.m') || lower.includes('sm')) return '#bc8cff'; // Фіолетовий
+      return '#f0883e'; // Оранжевий (Модератор)
+    }
+
     function setPeriod(period, event) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
@@ -90,26 +102,32 @@
 
       const stats = {};
 
-      data.filter(shift => {
-        // Фільтр по серверу
-        if (selectedServer !== 'all' && shift.server !== selectedServer) return false;
+      data.forEach(shift => {
+        // Фільтр по серверу (порівнюємо без урахування пробілів/нулів для надійності)
+        if (selectedServer !== 'all') {
+          const shiftServerClean = String(shift.server).replace(/^0+/, '');
+          const selectedClean = String(selectedServer).replace(/^0+/, '');
+          if (shiftServerClean !== selectedClean) return;
+        }
 
         // Фільтр по періоду
         const shiftDate = new Date(shift.date);
+        let match = false;
         if (currentPeriod === 'today') {
-          return shift.date === todayStr;
+          match = (shift.date === todayStr);
         } else if (currentPeriod === 'week') {
           const diffDays = (now - shiftDate) / (1000 * 60 * 60 * 24);
-          return (diffDays >= 0 && diffDays <= 7);
+          match = (diffDays >= 0 && diffDays <= 7);
         } else if (currentPeriod === 'month') {
-          return (shiftDate.getMonth() === now.getMonth() && shiftDate.getFullYear() === now.getFullYear());
+          match = (shiftDate.getMonth() === now.getMonth() && shiftDate.getFullYear() === now.getFullYear());
         }
-        return true;
-      }).forEach(shift => {
-        if (!stats[shift.nick]) {
-          stats[shift.nick] = { time: 0, server: shift.server, role: shift.role || 'Модератор' };
+
+        if (match) {
+          if (!stats[shift.nick]) {
+            stats[shift.nick] = { time: 0, server: shift.server, role: shift.role || 'Модератор' };
+          }
+          stats[shift.nick].time += shift.duration_seconds;
         }
-        stats[shift.nick].time += shift.duration_seconds;
       });
 
       const sortedUsers = Object.keys(stats).sort((a, b) => stats[b].time - stats[a].time);
@@ -127,13 +145,14 @@
         const m = Math.floor((sec % 3600) / 60);
         const s = sec % 60;
         const timeFormatted = `${h} год ${m} хв ${s} сек`;
+        const roleColor = getRoleColor(userStats.role);
 
         return `
           <tr>
             <td class="rank-cell">#${index + 1}</td>
             <td>
               <b>${nick}</b>
-              <span class="role-badge">${userStats.role}</span>
+              <span class="role-badge" style="color: ${roleColor};">${userStats.role}</span>
             </td>
             <td><span class="server-badge">Сервер ${userStats.server}</span></td>
             <td class="time-cell">${timeFormatted}</td>
@@ -142,7 +161,6 @@
       }).join('');
     }
 
-    // Первинне завантаження
     renderLeaderboard();
   </script>
 </body>
