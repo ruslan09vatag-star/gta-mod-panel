@@ -111,6 +111,57 @@
       display: none;
     }
 
+    /* === ВЕРТИКАЛЬНІ КОЛЬОРОВІ ЩИТИ СЕРВЕРІВ === */
+    .vertical-shield {
+      position: relative;
+      width: 30px;
+      height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-style: italic;
+      font-size: 13px;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+      user-select: none;
+    }
+
+    .vertical-shield::before, 
+    .vertical-shield::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .vertical-shield::before {
+      left: 0;
+      clip-path: polygon(100% 0, 0 15%, 0 85%, 100% 100%);
+    }
+
+    .vertical-shield::after {
+      right: 0;
+      clip-path: polygon(0 0, 100% 15%, 100% 85%, 0 100%);
+      filter: brightness(0.8);
+    }
+
+    .vertical-shield span {
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Точні кольори для кожного сервера за фото */
+    .shield-01::before, .shield-01::after { background-color: #ff6b00; } /* 01 — Помаранчевий */
+    .shield-02::before, .shield-02::after { background-color: #0099ff; } /* 02 — Блакитний */
+    .shield-03::before, .shield-03::after { background-color: #00cc22; } /* 03 — Зелений */
+    .shield-04::before, .shield-04::after { background-color: #7a00ff; } /* 04 — Фіолетовий */
+    .shield-05::before, .shield-05::after { background-color: #e6007e; } /* 05 — Рожевий */
+    .shield-06::before, .shield-06::after { background-color: #00bfa5; } /* 06 — Бірюзовий */
+    .shield-07::before, .shield-07::after { background-color: #4a76a8; } /* 07 — Синій */
+
     /* === ДЕШБОРД === */
     #dashboardScreen {
       display: none;
@@ -142,7 +193,6 @@
 
     .user-name { color: #ffffff; font-weight: 700; font-size: 15px; }
 
-    /* --- СТИЛІ РОЛЕЙ --- */
     .role-badge {
       font-size: 11px;
       padding: 4px 8px;
@@ -155,30 +205,6 @@
     .role-sm { background: #1e2e1e; color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.4); }
     .role-zktp { background: #3d2b1e; color: #d29922; border: 1px solid rgba(210, 153, 34, 0.3); }
     .role-ktp { background: #3d1e1e; color: #f85149; border: 1px solid rgba(248, 81, 73, 0.3); }
-
-    /* === ТОЧНИЙ ДИЗАЙН ЩИТА "Серв XX" ЯК НА ФОТО === */
-    .ugta-shield {
-      background-color: #000000;
-      color: #ffffff;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px 14px 10px 14px;
-      width: 100px;
-      height: 32px;
-      clip-path: polygon(0 0, 100% 0, 100% 70%, 50% 100%, 0 70%);
-      font-family: 'Inter', sans-serif;
-      font-style: italic;
-      font-weight: 900;
-      font-size: 13px;
-      letter-spacing: -0.2px;
-      user-select: none;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    }
-
-    .ugta-shield .srv-txt {
-      margin-right: 4px;
-    }
 
     .profile-dropdown {
       position: absolute;
@@ -354,7 +380,7 @@
 </head>
 <body>
 
-  <!-- 1. ЕКРАН ВХОДУ -->
+  <!-- 1. ЕКРАН ВХОДУ (БЕЗ ЗМІН) -->
   <div id="authScreen" class="auth-wrapper">
     <div class="auth-container">
       <div class="auth-header">
@@ -471,12 +497,11 @@
     const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
     const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-    // ГЕНЕРАЦІЯ ЛОГОТИПА ЩИТА ЯК НА СКТНІШОТІ
+    // ГЕНЕРАЦІЯ ВЕРТИКАЛЬНОГО КОЛЬОРОВОГО ЛОГОТИПА СЕРВЕРА
     function getServerLogoHTML(serverNum) {
       const numStr = String(serverNum).padStart(2, '0');
       return `
-        <div class="ugta-shield">
-          <span class="srv-txt">Серв</span>
+        <div class="vertical-shield shield-${numStr}">
           <span>${numStr}</span>
         </div>
       `;
@@ -541,7 +566,6 @@
 
       document.getElementById('userNick').textContent = user.nick || 'Модератор';
       
-      // Налаштування ролі
       const roleElem = document.getElementById('userRole');
       const rawRole = (user.role || 'S.M').toUpperCase();
       roleElem.textContent = user.role || 'S.M';
@@ -552,7 +576,7 @@
       else if (rawRole.includes('КТП')) roleElem.classList.add('role-ktp');
       else roleElem.classList.add('role-sm');
 
-      // Відображення логотипа сервера біля ніка
+      // Відображення логотипа сервера біля кабінету
       const srvContainer = document.getElementById('userServerContainer');
       const srvNum = user.server || '05';
       srvContainer.innerHTML = getServerLogoHTML(srvNum);
