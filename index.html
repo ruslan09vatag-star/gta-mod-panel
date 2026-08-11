@@ -2,176 +2,61 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UGTA Moderation Panel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    body { background-color: #0b0e14; color: #c9d1d9; min-height: 100vh; padding: 24px 40px; }
-    .main-wrapper { max-width: 1300px; margin: 0 auto; }
-    
-    /* Навігація / Кнопки */
-    .nav-container { display: flex; gap: 12px; margin-bottom: 24px; }
-    .nav-btn { background: #161b26; border: 1px solid #1e2638; color: #c9d1d9; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-    .nav-btn:hover, .nav-btn.active { background: #1f6feb; color: #ffffff; border-color: #1f6feb; }
-
-    .page-title { color: #ffffff; font-size: 26px; font-weight: 700; margin-bottom: 20px; }
-
-    /* Періоди */
-    .periods-container { display: flex; gap: 8px; margin-bottom: 16px; }
-    .period-btn { background: #121721; border: 1px solid #1e2638; color: #8b949e; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .period-btn.active { background: #21262d; color: #ffffff; border-color: #30363d; }
-
-    /* Таблиця */
-    .lb-table { width: 100%; border-collapse: collapse; background: #121721; border-radius: 12px; overflow: hidden; border: 1px solid #1e2638; }
-    .lb-table th, .lb-table td { padding: 16px 20px; text-align: left; }
-    .lb-table th { background: #161b26; color: #8b949e; font-size: 13px; font-weight: 600; border-bottom: 1px solid #1e2638; }
-    .lb-table td { border-bottom: 1px solid #161b26; }
-    .rank-badge { font-weight: 700; width: 30px; display: inline-block; color: #f0f6fc; }
+    body { background: #0b0e14; color: #fff; font-family: sans-serif; padding: 20px; }
+    .nav { display: flex; gap: 10px; margin-bottom: 20px; }
+    button { padding: 10px 20px; background: #1f6feb; border: none; color: #fff; border-radius: 6px; cursor: pointer; }
+    .card { background: #121721; padding: 20px; border-radius: 12px; border: 1px solid #1e2638; margin-bottom: 20px; }
   </style>
 </head>
 <body>
 
-  <div class="main-wrapper">
-    <!-- Навігація по вкладках -->
-    <div class="nav-container">
-      <button class="nav-btn active" onclick="switchTab('main', this)">Панель</button>
-      <button class="nav-btn" onclick="switchTab('leaderboard', this)">Лідерборд</button>
-    </div>
+  <div class="nav">
+    <button onclick="showSection('panel')">Панель</button>
+    <button onclick="showSection('leaderboard')">Лідерборд</button>
+    <button onclick="logout()">Вийти</button>
+  </div>
 
-    <!-- Головна панель -->
-    <div id="mainSection">
-      <h1 class="page-title">Головна панель</h1>
-      <p style="color: #8b949e;">Вітаємо у панелі модерації UGTA!</p>
-    </div>
+  <div id="panel" class="card">
+    <h1>Особистий кабінет</h1>
+    <div id="userInfo">Завантаження даних...</div>
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #1e2638;">
+    <h3>Здати зміну</h3>
+    <input type="number" id="shiftDuration" placeholder="Час у хвилинах" style="padding:10px; border-radius:6px; border:none;">
+    <button onclick="submitShift()">Відправити</button>
+  </div>
 
-    <!-- Секція лідерборду -->
-    <div id="leaderboardSection" style="display:none;">
-      <h1 class="page-title">Лідерборд модераторів</h1>
-      
-      <!-- Перемикачі періодів -->
-      <div class="periods-container">
-        <button class="period-btn active" onclick="setPeriod('day', this)">День</button>
-        <button class="period-btn" onclick="setPeriod('week', this)">Тиждень</button>
-        <button class="period-btn" onclick="setPeriod('month', this)">Місяць</button>
-      </div>
-      
-      <table class="lb-table">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Модератор</th>
-            <th>Сервер</th>
-            <th>Час</th>
-          </tr>
-        </thead>
-        <tbody id="lbTableBody">
-          <tr><td colspan="4" style="text-align:center; color:#6e7681;">Завантаження даних...</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <div id="leaderboard" class="card" style="display:none;">
+    <h1>Лідерборд</h1>
+    <div id="lbData">Дані лідерборду...</div>
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
-    const dbClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const dbClient = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
+
+    // Перевірка авторизації
+    const currentUser = JSON.parse(localStorage.getItem('ugta_current_user'));
+    if (!currentUser) window.location.href = 'login.html';
     
-    let allShiftsData = [];
-    let currentPeriod = 'day';
-    const todayStr = new Date().toISOString().split('T')[0];
+    document.getElementById('userInfo').innerHTML = `Вітаємо, <b>${currentUser.nick}</b>! Акаунт: ${currentUser.account_number}`;
 
-    // Перемикача вкладок
-    function switchTab(tabName, btn) {
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      document.getElementById('mainSection').style.display = tabName === 'main' ? 'block' : 'none';
-      document.getElementById('leaderboardSection').style.display = tabName === 'leaderboard' ? 'block' : 'none';
-
-      if(tabName === 'leaderboard') {
-        fetchShifts();
-      }
+    function showSection(id) {
+      document.getElementById('panel').style.display = id === 'panel' ? 'block' : 'none';
+      document.getElementById('leaderboard').style.display = id === 'leaderboard' ? 'block' : 'none';
     }
 
-    async function fetchShifts() {
-      const { data, error } = await dbClient.from('shifts').select('*, profiles(nick, server)');
-      if (!error && data) {
-        allShiftsData = data;
-        renderLeaderboard();
-      }
+    async function submitShift() {
+      const duration = document.getElementById('shiftDuration').value;
+      const { error } = await dbClient.from('shifts').insert([{ user_id: currentUser.id, duration_seconds: duration * 60, date: new Date().toISOString().split('T')[0] }]);
+      if (error) alert('Помилка!');
+      else alert('Зміну здано!');
     }
 
-    function getWeekNumber(d) {
-      let date = new Date(d);
-      date.setHours(0, 0, 0, 0);
-      date.setDate(date.getDate() + 4 - (date.getDay() || 7));
-      return Math.ceil((((date - new Date(date.getFullYear(), 0, 1)) / 86400000) + 1) / 7);
-    }
-
-    function setPeriod(p, btn) {
-      currentPeriod = p;
-      document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderLeaderboard();
-    }
-
-    function renderLeaderboard() {
-      const tbody = document.getElementById('lbTableBody');
-      const now = new Date();
-      const statsMap = {};
-
-      allShiftsData.forEach(shift => {
-        // Видалення несправжніх (без профілю)
-        if (!shift.profiles) return;
-        
-        const shiftDate = new Date(shift.date);
-        let include = false;
-
-        // Авто-скидання залежно від обраного періоду
-        if (currentPeriod === 'day' && shift.date === todayStr) {
-          include = true;
-        } else if (currentPeriod === 'week' && getWeekNumber(shiftDate) === getWeekNumber(now) && shiftDate.getFullYear() === now.getFullYear()) {
-          include = true;
-        } else if (currentPeriod === 'month' && shift.date.slice(0, 7) === now.toISOString().slice(0, 7)) {
-          include = true;
-        }
-
-        if (include) {
-          const uid = shift.user_id;
-          if (!statsMap[uid]) {
-            statsMap[uid] = { nick: shift.profiles.nick, server: shift.profiles.server, totalSec: 0 };
-          }
-          statsMap[uid].totalSec += shift.duration_seconds;
-        }
-      });
-
-      const lbArray = Object.values(statsMap).sort((a, b) => b.totalSec - a.totalSec);
-
-      if (lbArray.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#6e7681;">Немає даних за поточний період.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = lbArray.map((item, i) => {
-        let rank = i + 1;
-        if (i === 0) rank = '🥇';
-        else if (i === 1) rank = '🥈';
-        else if (i === 2) rank = '🥉';
-
-        const hours = Math.floor(item.totalSec / 3600);
-        const minutes = Math.floor((item.totalSec % 3600) / 60);
-
-        return `
-          <tr>
-            <td><span class="rank-badge">${rank}</span></td>
-            <td><strong>${item.nick}</strong></td>
-            <td>Сервер ${item.server}</td>
-            <td style="font-family: monospace; font-weight: 600;">${hours} год ${minutes} хв</td>
-          </tr>
-        `;
-      }).join('');
+    function logout() {
+      localStorage.clear();
+      window.location.href = 'login.html';
     }
   </script>
 </body>
