@@ -64,7 +64,6 @@ module.exports = async (req, res) => {
       const server = parts[parts.length - 2];
       const nick = parts.slice(1, parts.length - 2).join(' ');
 
-      const accountNumber = String(Math.floor(10000 + Math.random() * 90000));
       const password = generatePassword(8);
 
       const dbResponse = await fetch(`${SUPABASE_URL}/rest/v1/profiles`, {
@@ -76,9 +75,8 @@ module.exports = async (req, res) => {
           'Prefer': 'return=minimal'
         },
         body: JSON.stringify({
-          account_number: accountNumber,
-          password: password,
           nick: nick,
+          password: password,
           server: server,
           role: role
         })
@@ -90,11 +88,11 @@ module.exports = async (req, res) => {
       } else {
         await sendMessage(chatId, 
           '🟢 <b>Акаунт успішно створено!</b>\n\n' +
-          `👤 <b>Нік:</b> ${nick}\n` +
+          `👤 <b>Нікнейм:</b> <code>${nick}</code>\n` +
           `🛡️ <b>Сервер:</b> ${server}\n` +
           `🔰 <b>Роль:</b> ${role}\n\n` +
-          `🔑 <b>Логін (Номер):</b> <code>${accountNumber}</code>\n` +
-          `🔐 <b>Пароль:</b> <code>${password}</code>`
+          `🔐 <b>Пароль:</b> <code>${password}</code>\n\n` +
+          `<i>Тепер можна увійти на сайт за цим нікнеймом та паролем.</i>`
         );
       }
     }
