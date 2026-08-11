@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UGTA Moderation Panel</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,600;0,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -111,13 +111,12 @@
       display: none;
     }
 
-    /* === SVG ЩИТИ СЕРВЕРІВ === */
+    /* === ІКОНКИ СЕРВЕРІВ === */
     .server-shield-icon {
-      width: 32px;
-      height: 42px;
+      width: 30px;
+      height: 38px;
       display: inline-block;
       vertical-align: middle;
-      filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.5));
     }
 
     /* === ДЕШБОРД === */
@@ -338,7 +337,7 @@
 </head>
 <body>
 
-  <!-- 1. ЕКРАН ВХОДУ (ОРИГІНАЛЬНИЙ) -->
+  <!-- 1. ЕКРАН ВХОДУ -->
   <div id="authScreen" class="auth-wrapper">
     <div class="auth-container">
       <div class="auth-header">
@@ -412,7 +411,7 @@
       <div class="recent-shifts-card">
         <div class="card-title">Останні зміни</div>
         <div class="shifts-list" id="shiftsList">
-          <div style="color: #6e7681; font-size: 13px;">Немає завершених змін за сьогодні.</div>
+          <div style="color: #6e7681; font-size: 13px;">Немає завершених змін.</div>
         </div>
       </div>
     </div>
@@ -455,50 +454,34 @@
     const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
     const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-    // ТОЧНІ ПАЛІТРИ КОЛЬОРІВ ДЛЯ КОЖНОГО СЕРВЕРА З ФОТО
+    // КОЛЬОРИ СЕРВЕРІВ (ТОЧНО ЯК НА СКРІНШОТІ)
     const serverColors = {
-      '01': { left: '#FF7E00', right: '#CC5200' }, // Помаранчевий
-      '02': { left: '#00B2FF', right: '#0077CC' }, // Блакитний
-      '03': { left: '#00E626', right: '#009919' }, // Зелений
-      '04': { left: '#8B22FF', right: '#5C00CC' }, // Фіолетовий
-      '05': { left: '#FF007A', right: '#CC0062' }, // Рожевий / Малиновий
-      '06': { left: '#00E5C4', right: '#009983' }, // Бірюзовий
-      '07': { left: '#4285F4', right: '#2B579A' }  // Синій
+      '01': '#FF7A00', // Помаранчевий
+      '02': '#00B2FF', // Блакитний
+      '03': '#10D03A', // Зелений
+      '04': '#8F22FF', // Фіолетовий
+      '05': '#FF5E9D', // Рожевий
+      '06': '#00E5C4', // Бірюзовий
+      '07': '#3B82F6'  // Синій
     };
 
-    // ВЕКТОРНИЙ SVG 3D-ЩИТ ЯК НА ФОТО
+    // ФОРМА ЩИТА ТА ЦИФРИ З ПРОРІЗЗЮ
     function getServerLogoHTML(serverNum) {
       const numStr = String(serverNum).padStart(2, '0');
-      const colors = serverColors[numStr] || serverColors['05'];
+      const color = serverColors[numStr] || serverColors['05'];
 
       return `
-        <svg class="server-shield-icon" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="gradLeft-${numStr}" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="${colors.left}" />
-              <stop offset="100%" stop-color="${colors.right}" />
-            </linearGradient>
-            <linearGradient id="gradRight-${numStr}" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="${colors.right}" />
-              <stop offset="100%" stop-color="#111" stop-opacity="0.6" />
-            </linearGradient>
-          </defs>
-
-          <!-- Ліва частина щита -->
-          <path d="M50 0 L0 18 L0 105 L50 130 Z" fill="url(#gradLeft-${numStr})" />
+        <svg class="server-shield-icon" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+          <!-- Плоский 5-кутний щит -->
+          <path d="M 0 0 L 100 0 L 100 80 L 50 120 L 0 80 Z" fill="${color}" />
           
-          <!-- Права частина щита (3D тінь) -->
-          <path d="M50 0 L100 18 L100 105 L50 130 Z" fill="url(#gradRight-${numStr})" />
-
-          <!-- Текст номера сервера -->
-          <text x="50" y="78" 
+          <!-- Номер з перекресленим 0 -->
+          <text x="50" y="70" 
                 font-family="Inter, sans-serif" 
-                font-size="48" 
+                font-size="52" 
                 font-weight="900" 
-                font-style="italic"
                 fill="#FFFFFF" 
-                text-anchor="middle"
-                style="filter: drop-shadow(0px 2px 3px rgba(0,0,0,0.8));">
+                text-anchor="middle">
             ${numStr}
           </text>
         </svg>
@@ -574,11 +557,11 @@
       else if (rawRole.includes('КТП')) roleElem.classList.add('role-ktp');
       else roleElem.classList.add('role-sm');
 
-      // Відображення логотипа сервера біля кабінету
       const srvContainer = document.getElementById('userServerContainer');
       const srvNum = user.server || '05';
       srvContainer.innerHTML = getServerLogoHTML(srvNum);
 
+      // Завантажуємо зміни ДЛЯ КОНКРЕТНОГО КОРИСТУВАЧА
       loadRecentShifts();
       renderLeaderboard();
     }
@@ -631,8 +614,12 @@
       return `${hrs}:${mins}:${secs}`;
     }
 
+    // ЗБЕРЕЖЕННЯ ЗМІН З ПРИВ'ЯЗКОЮ ДО ID КОРИСТУВАЧА
     function saveShift(start, end, durationSec) {
-      const shifts = JSON.parse(localStorage.getItem('myShifts') || '[]');
+      if (!currentUser) return;
+
+      const storageKey = `shifts_${currentUser.id || currentUser.account_number}`;
+      const shifts = JSON.parse(localStorage.getItem(storageKey) || '[]');
       
       const newShift = {
         date: start.toLocaleDateString('uk-UA'),
@@ -642,12 +629,16 @@
       };
 
       shifts.unshift(newShift);
-      localStorage.setItem('myShifts', JSON.stringify(shifts));
+      localStorage.setItem(storageKey, JSON.stringify(shifts));
       loadRecentShifts();
     }
 
+    // ЗАТВАНТАЖЕННЯ ЗМІН ТІЛЬКИ ПОТОЧНОГО АКАУНТА
     function loadRecentShifts() {
-      const shifts = JSON.parse(localStorage.getItem('myShifts') || '[]');
+      if (!currentUser) return;
+
+      const storageKey = `shifts_${currentUser.id || currentUser.account_number}`;
+      const shifts = JSON.parse(localStorage.getItem(storageKey) || '[]');
       const container = document.getElementById('shiftsList');
 
       if (shifts.length === 0) {
@@ -718,8 +709,22 @@
       document.getElementById('profileDropdown').classList.remove('active');
     });
 
+    // ОЧИЩЕННЯ СТАНУ ПРИ ВИХОДІ
     function logout() {
-      location.reload();
+      clearInterval(timerInterval);
+      isOnShift = false;
+      totalSeconds = 0;
+      currentUser = null;
+
+      document.getElementById('todayTimer').textContent = '00:00:00';
+      document.getElementById('statusIndicator').textContent = 'Не на зміні';
+      document.getElementById('statusIndicator').className = 'status-off';
+      document.getElementById('shiftBtn').textContent = 'Почати зміну';
+      document.getElementById('shiftBtn').classList.remove('active');
+
+      document.getElementById('dashboardScreen').style.display = 'none';
+      document.getElementById('authScreen').style.display = 'flex';
+      document.getElementById('loginForm').reset();
     }
   </script>
 </body>
