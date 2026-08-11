@@ -462,21 +462,18 @@
     const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
     const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-    // ВИДАЛЯЄМО СТАРИЙ ГЛОБАЛЬНИЙ КЕШ (ЩОБ НЕ ПЛУТАЛИСЯ АКАУНТИ)
     localStorage.removeItem('myShifts');
 
-    // ТОЧНІ КОЛЬОРИ ДЛЯ СЕРВЕРІВ
     const serverColors = {
-      '01': '#FF7A00', // Помаранчевий
-      '02': '#00B2FF', // Блакитний
-      '03': '#10D03A', // Зелений
-      '04': '#8F22FF', // Фіолетовий
-      '05': '#FF5E9D', // Рожевий (як на фото)
-      '06': '#00E5C4', // Бірюзовий
-      '07': '#3B82F6'  // Синій
+      '01': '#FF7A00',
+      '02': '#00B2FF',
+      '03': '#10D03A',
+      '04': '#8F22FF',
+      '05': '#FF5E9D',
+      '06': '#00E5C4',
+      '07': '#3B82F6'
     };
 
-    // ТОЧНИЙ ЛОГОТИП СЕРВЕРА В ХЕДЕРІ
     function getServerLogoHTML(serverNum) {
       const numStr = String(serverNum).padStart(2, '0');
       const bg = serverColors[numStr] || serverColors['05'];
@@ -506,7 +503,6 @@
     const yDay = new Date(); yDay.setDate(yDay.getDate() - 1);
     document.getElementById('yesterdayDate').textContent = yDay.toISOString().split('T')[0];
 
-    // АВТОРИЗАЦІЯ
     document.getElementById('submitBtn').addEventListener('click', async () => {
       const accountNumber = document.getElementById('accountNumber').value.trim();
       const password = document.getElementById('password').value.trim();
@@ -535,7 +531,6 @@
       showDashboard(user);
     });
 
-    // ПОКАЗ ДЕШБОРДУ
     function showDashboard(user) {
       document.getElementById('authScreen').style.display = 'none';
       document.getElementById('dashboardScreen').style.display = 'block';
@@ -552,11 +547,9 @@
       else if (rawRole.includes('КТП')) roleElem.classList.add('role-ktp');
       else roleElem.classList.add('role-sm');
 
-      // Відображення іконки сервера
       const srvContainer = document.getElementById('userServerContainer');
       srvContainer.innerHTML = getServerLogoHTML(user.server || '05');
 
-      // Очищення та завантаження персональних даних
       loadRecentShifts();
       renderLeaderboard();
     }
@@ -609,7 +602,6 @@
       return `${hrs}:${mins}:${secs}`;
     }
 
-    // УНІКАЛЬНИЙ КЛЮЧ ДЛЯ КОЖНОГО АКАУНТА
     function getUserStorageKey() {
       if (!currentUser) return null;
       return `user_shifts_${currentUser.account_number || currentUser.id}`;
@@ -635,7 +627,7 @@
 
     function loadRecentShifts() {
       const container = document.getElementById('shiftsList');
-      container.innerHTML = ''; // Очищаємо список повністю
+      container.innerHTML = '';
 
       const key = getUserStorageKey();
       if (!key) {
@@ -713,7 +705,6 @@
       document.getElementById('profileDropdown').classList.remove('active');
     });
 
-    // ПОВНЕ СКИДАННЯ СТАНУ ПРИ ВИХОДІ
     function logout() {
       clearInterval(timerInterval);
       isOnShift = false;
