@@ -46,8 +46,8 @@ module.exports = async (req, res) => {
       await sendMessage(chatId, 
         '👑 <b>Панель адміністратора UGTA</b>\n\n' +
         'Щоб створити акаунт модератора, надсилай:\n' +
-        '<code>/reg Ім_я Прізвище Сервер Роль</code>\n\n' +
-        '<b>Приклад:</b>\n<code>/reg Руслан_Мандарин 05 Moderator</code>'
+        '<code>/reg Нік Сервер Роль</code>\n\n' +
+        '<b>Приклад:</b>\n<code>/reg Руслан_Мандарин 02 Moderator</code>'
       );
       return res.status(200).json({ status: 'OK' });
     }
@@ -60,7 +60,7 @@ module.exports = async (req, res) => {
       }
 
       const nick = parts[1];
-      const server = parts[2].padStart(2, '0');
+      const server = parts[2];
       const role = parts[3];
 
       const accountNumber = String(Math.floor(10000 + Math.random() * 90000));
