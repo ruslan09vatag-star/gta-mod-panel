@@ -20,7 +20,7 @@
     .report-btn:hover { background: #388bfd; }
 
     .nav-links { display: flex; gap: 10px; margin-bottom: 20px; }
-    .nav-link { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; transition: 0.2s; }
+    .nav-link { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; transition: 0.2s; cursor: pointer; display: inline-block; }
     .nav-link:hover { color: #fff; background: #1f293d; }
     .nav-link.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
 
@@ -54,11 +54,11 @@
 <body>
 
   <div class="main-container">
-    <!-- Навігація з робочими посиланнями -->
+    <!-- Навігація на базі JS-кнопок для уникнення збоїв маршрутизації -->
     <div class="nav-links">
-      <a href="index.html" class="nav-link">Панель модератора</a>
-      <a href="admin.html" class="nav-link active">Панель керівництва</a>
-      <a href="leaderboard.html" class="nav-link">Лідерборд 🏆</a>
+      <button class="nav-link" onclick="goToPage('index.html')">Панель модератора</button>
+      <button class="nav-link active" onclick="goToPage('admin.html')">Панель керівництва</button>
+      <button class="nav-link" onclick="goToPage('leaderboard.html')">Лідерборд 🏆</button>
     </div>
 
     <div class="header-section">
@@ -125,6 +125,11 @@
 
   <script type="module">
     import { subscribeToShifts, getRoleColor } from './data.js';
+
+    // Функція безпечного примусового переходу між сторінками
+    window.goToPage = function(pageName) {
+      window.location.href = pageName;
+    }
 
     const now = new Date();
     const day = String(now.getDate()).padStart(2, '0');
