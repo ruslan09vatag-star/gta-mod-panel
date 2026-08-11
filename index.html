@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UGTA Moderation Panel</title>
   
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -111,7 +111,7 @@
       display: none;
     }
 
-    /* === ДЕШБОРД (ПАНЕЛЬ МОДЕРАЦІЇ) === */
+    /* === ДЕШБОРД === */
     #dashboardScreen {
       display: none;
       padding: 24px 40px;
@@ -134,15 +134,36 @@
       padding: 8px 16px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       cursor: pointer;
       position: relative;
       user-select: none;
     }
 
     .user-name { color: #ffffff; font-weight: 700; font-size: 15px; }
-    .role-badge { background: #1e263d; color: #8b949e; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
-    .server-badge { background: #e91e63; color: #fff; font-weight: 800; font-size: 12px; padding: 4px 8px; border-radius: 6px; box-shadow: 0 0 10px rgba(233, 30, 99, 0.4); }
+
+    /* --- СТИЛІ РОЛЕЙ --- */
+    .role-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .role-moderator { background: #1e263d; color: #58a6ff; border: 1px solid rgba(88, 166, 255, 0.3); }
+    .role-sm { background: #232d1e; color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.3); }
+    .role-zktp { background: #3d2b1e; color: #d29922; border: 1px solid rgba(210, 153, 34, 0.3); }
+    .role-ktp { background: #3d1e1e; color: #f85149; border: 1px solid rgba(248, 81, 73, 0.3); }
+
+    /* --- SVG ІКОНКА-ШЕВРОН СЕРВЕРА --- */
+    .server-logo-icon {
+      width: 28px;
+      height: 36px;
+      display: inline-block;
+      vertical-align: middle;
+      filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.5));
+    }
 
     .profile-dropdown {
       position: absolute;
@@ -207,7 +228,6 @@
     .card-date { color: #6e7681; font-size: 13px; margin-bottom: 24px; }
     .card-timer { font-family: monospace; font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: 2px; }
 
-    /* Блок останніх змін */
     .recent-shifts-card { background: #121721; border: 1px solid #1e2638; border-radius: 12px; padding: 24px; margin-bottom: 30px; }
     .shifts-list { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
     .shift-item {
@@ -223,7 +243,7 @@
     .shift-time { color: #8b949e; font-size: 13px; }
     .shift-duration { color: #3fb950; font-weight: 600; font-family: monospace; }
 
-    /* === СТИЛІ ЛІДЕРБОРДУ З АНІМОВАНИМ ПОВЗУНКОМ === */
+    /* ЛІДЕРБОРД */
     #leaderboardSection { display: none; }
     
     .lb-controls {
@@ -235,7 +255,6 @@
       gap: 16px;
     }
 
-    /* Красивий анімований перемикач часу */
     .sliding-toggle {
       position: relative;
       background: #121721;
@@ -272,7 +291,6 @@
 
     .toggle-btn.active { color: #ffffff; }
 
-    /* Серверний фільтр */
     .server-filter-btn {
       background: #121721;
       border: 1px solid #1e2638;
@@ -286,12 +304,11 @@
     }
 
     .server-filter-btn.active {
-      background: #e91e63;
+      background: #1f6feb;
       color: #fff;
-      border-color: #e91e63;
+      border-color: #1f6feb;
     }
 
-    /* Таблиця Лідерборду */
     .lb-table {
       width: 100%;
       border-collapse: collapse;
@@ -318,14 +335,11 @@
     .lb-table tr:hover { background: #1a202c; }
 
     .rank-badge { font-weight: 700; width: 30px; display: inline-block; }
-    .rank-1 { color: #ffd700; font-size: 18px; }
-    .rank-2 { color: #c0c0c0; font-size: 18px; }
-    .rank-3 { color: #cd7f32; font-size: 18px; }
   </style>
 </head>
 <body>
 
-  <!-- 1. ЕКРАН ВХОДУ -->
+  <!-- 1. ЕКРАН ВХОДУ (Завжди вимагає введення номеру та паролю) -->
   <div id="authScreen" class="auth-wrapper">
     <div class="auth-container">
       <div class="auth-header">
@@ -357,7 +371,7 @@
       <div class="user-profile-btn" id="profileBtn">
         <span class="user-name" id="userNick">Завантаження...</span>
         <span class="role-badge" id="userRole">S.M</span>
-        <span class="server-badge" id="userServer">02</span>
+        <span id="userServerContainer"></span>
 
         <div class="profile-dropdown" id="profileDropdown">
           <div class="dropdown-item" onclick="alert('Розділ налаштувань у розробці')">Налаштування</div>
@@ -368,7 +382,7 @@
       <button class="nav-btn active" id="btnMain" onclick="switchTab('main')">Панель</button>
       <button class="nav-btn" id="btnLeaderboard" onclick="switchTab('leaderboard')">Лідерборд</button>
       <button class="nav-btn" onclick="alert('Посібник у розробці')">Посібник</button>
-      <button class="nav-btn" onclick="alert('Гра запуск...')">Гра</button>
+      <button class="nav-btn" onclick="alert('Запуск гри...')">Гра</button>
     </div>
 
     <!-- ОСНОВНИЙ РОЗДІЛ МОДЕРАЦІЇ -->
@@ -409,7 +423,6 @@
       <h1 class="page-title">Лідерборд модераторів</h1>
 
       <div class="lb-controls">
-        <!-- Анімований повзунок періоду -->
         <div class="sliding-toggle">
           <div class="slider-pill" id="sliderPill"></div>
           <button class="toggle-btn active" onclick="setPeriod(0, 'day')">День</button>
@@ -417,7 +430,6 @@
           <button class="toggle-btn" onclick="setPeriod(2, 'month')">Місяць</button>
         </div>
 
-        <!-- Перемикач серверів -->
         <div>
           <button class="server-filter-btn active" id="filterAll" onclick="filterServer('all')">Усі сервери</button>
           <button class="server-filter-btn" id="filterMy" onclick="filterServer('my')">Мій сервер</button>
@@ -433,9 +445,7 @@
             <th>Час на зміні</th>
           </tr>
         </thead>
-        <tbody id="lbTableBody">
-          <!-- Динамічні дані -->
-        </tbody>
+        <tbody id="lbTableBody"></tbody>
       </table>
     </div>
 
@@ -446,43 +456,80 @@
     const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
     const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
+    // ГЕНЕРАТОР ВЕКТОРНИХ ЛОГОТИПІВ-ШЕВРОНІВ СЕРВЕРІВ UGTA
+    function getServerLogoSVG(serverNum) {
+      const numStr = String(serverNum).padStart(2, '0');
+      
+      const serverGradients = {
+        '01': ['#FF9300', '#FF4500'],
+        '02': ['#00BFFF', '#0055FF'],
+        '03': ['#00E640', '#008000'],
+        '04': ['#A020F0', '#5500A0'],
+        '05': ['#FF1493', '#990055'],
+        '06': ['#00E5EE', '#008B8B'],
+        '07': ['#5B8EFF', '#1A36A0']
+      };
+
+      const colors = serverGradients[numStr] || ['#888888', '#444444'];
+
+      return `
+        <svg class="server-logo-icon" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="grad_${numStr}_left" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="${colors[0]}" />
+              <stop offset="100%" stop-color="${colors[1]}" />
+            </linearGradient>
+            <linearGradient id="grad_${numStr}_right" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="${colors[0]}" stop-opacity="0.75" />
+              <stop offset="100%" stop-color="${colors[1]}" stop-opacity="0.85" />
+            </linearGradient>
+          </defs>
+          <!-- Ліва половина шеврона -->
+          <path d="M 50,130 L 5,100 L 5,5 C 20,15 35,20 50,22 Z" fill="url(#grad_${numStr}_left)" />
+          <!-- Права половина шеврона (об'єм) -->
+          <path d="M 50,130 L 95,100 L 95,5 C 80,15 65,20 50,22 Z" fill="url(#grad_${numStr}_right)" />
+          <!-- Похилий текст номера сервера -->
+          <text x="50" y="75" font-family="'Inter', sans-serif" font-weight="900" font-size="46" font-style="italic" fill="#FFFFFF" text-anchor="middle" letter-spacing="-2">
+            ${numStr}
+          </text>
+        </svg>
+      `;
+    }
+
     let currentUser = null;
     let isOnShift = false;
     let timerInterval = null;
     let shiftStartTime = null;
     let totalSeconds = 0;
 
-    // Демо-дані для лідерборду
     const mockLeaderboard = [
-      { nick: 'Олександр Навроцький', server: '05', day: '05:20:10', week: '24:15:00', month: '98:40:00' },
-      { nick: 'Максим Коваль', server: '02', day: '04:10:00', week: '18:30:00', month: '72:10:00' },
-      { nick: 'Артем Бондар', server: '02', day: '03:45:12', week: '16:00:00', month: '65:00:00' },
-      { nick: 'Дмитро Шевченко', server: '01', day: '02:30:00', week: '12:20:00', month: '50:15:00' },
-      { nick: 'Богдан Яковенко', server: '03', day: '01:15:00', week: '08:10:00', month: '34:00:00' }
+      { nick: 'Олександр Навроцький', server: '05', role: 'S.M', day: '05:20:10', week: '24:15:00', month: '98:40:00' },
+      { nick: 'Максим Коваль', server: '02', role: 'Moderator', day: '04:10:00', week: '18:30:00', month: '72:10:00' },
+      { nick: 'Артем Бондар', server: '02', role: 'ЗКТП', day: '03:45:12', week: '16:00:00', month: '65:00:00' },
+      { nick: 'Дмитро Шевченко', server: '01', role: 'КТП', day: '02:30:00', week: '12:20:00', month: '50:15:00' },
+      { nick: 'Богдан Яковенко', server: '03', role: 'Moderator', day: '01:15:00', week: '08:10:00', month: '34:00:00' },
+      { nick: 'Ігор Мельник', server: '06', role: 'S.M', day: '00:50:00', week: '05:40:00', month: '22:10:00' },
+      { nick: 'Павло Ткаченко', server: '07', role: 'Moderator', day: '00:30:00', week: '03:10:00', month: '15:00:00' }
     ];
 
     let currentPeriod = 'day';
     let currentServerFilter = 'all';
 
-    // Дати
     document.getElementById('todayDate').textContent = new Date().toISOString().split('T')[0];
     const yDay = new Date(); yDay.setDate(yDay.getDate() - 1);
     document.getElementById('yesterdayDate').textContent = yDay.toISOString().split('T')[0];
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const session = localStorage.getItem('userSession');
-      if (session) {
-        currentUser = JSON.parse(session);
-        showDashboard(currentUser);
-      }
-    });
-
+    // КЛІК УВІЙТИ
     document.getElementById('submitBtn').addEventListener('click', async () => {
       const accountNumber = document.getElementById('accountNumber').value.trim();
       const password = document.getElementById('password').value.trim();
       const errDiv = document.getElementById('errorMessage');
 
-      if (!accountNumber || !password || !dbClient) return;
+      if (!accountNumber || !password || !dbClient) {
+        errDiv.textContent = '❌ Заповніть усі поля!';
+        errDiv.style.display = 'block';
+        return;
+      }
 
       const { data: user, error } = await dbClient
         .from('profiles')
@@ -498,23 +545,36 @@
       }
 
       currentUser = user;
-      localStorage.setItem('userSession', JSON.stringify(user));
       showDashboard(user);
     });
 
+    // ПОКАЗ ДЕШБОРДУ
     function showDashboard(user) {
       document.getElementById('authScreen').style.display = 'none';
       document.getElementById('dashboardScreen').style.display = 'block';
 
       document.getElementById('userNick').textContent = user.nick || 'Модератор';
-      document.getElementById('userRole').textContent = user.role || 'S.M';
-      document.getElementById('userServer').textContent = user.server || '02';
+      
+      // Налаштування ролі
+      const roleElem = document.getElementById('userRole');
+      const rawRole = (user.role || 'S.M').toUpperCase();
+      roleElem.textContent = user.role || 'S.M';
+      
+      roleElem.className = 'role-badge ';
+      if (rawRole.includes('MODERATOR') || rawRole.includes('МОДЕРАТОР')) roleElem.classList.add('role-moderator');
+      else if (rawRole.includes('ЗКТП')) roleElem.classList.add('role-zktp');
+      else if (rawRole.includes('КТП')) roleElem.classList.add('role-ktp');
+      else roleElem.classList.add('role-sm');
+
+      // Відображення оригінального логотипу сервера
+      const srvContainer = document.getElementById('userServerContainer');
+      const srvNum = user.server || '02';
+      srvContainer.innerHTML = getServerLogoSVG(srvNum);
 
       loadRecentShifts();
       renderLeaderboard();
     }
 
-    // Перемикання вкладок
     function switchTab(tab) {
       document.getElementById('mainSection').style.display = tab === 'main' ? 'block' : 'none';
       document.getElementById('leaderboardSection').style.display = tab === 'leaderboard' ? 'block' : 'none';
@@ -523,7 +583,6 @@
       document.getElementById('btnLeaderboard').classList.toggle('active', tab === 'leaderboard');
     }
 
-    // ПОЧАТОК / ЗАВЕРШЕННЯ ЗМІНИ
     function toggleShift() {
       const statusInd = document.getElementById('statusIndicator');
       const shiftBtn = document.getElementById('shiftBtn');
@@ -551,7 +610,6 @@
 
         clearInterval(timerInterval);
 
-        // Збереження зміни
         if (totalSeconds > 0) {
           saveShift(shiftStartTime, new Date(), totalSeconds);
         }
@@ -565,7 +623,6 @@
       return `${hrs}:${mins}:${secs}`;
     }
 
-    // Збереження зміни в Останні зміни
     function saveShift(start, end, durationSec) {
       const shifts = JSON.parse(localStorage.getItem('myShifts') || '[]');
       
@@ -601,7 +658,6 @@
       `).join('');
     }
 
-    // АНІМАЦІЯ ПОВЗУНКА ЛІДЕРБОРДУ
     function setPeriod(index, period) {
       document.getElementById('sliderPill').style.transform = `translateX(${index * 100}%)`;
       
@@ -619,20 +675,17 @@
       renderLeaderboard();
     }
 
-    // РЕНДЕР ТАБЛИЦІ ЛІДЕРБОРДУ
     function renderLeaderboard() {
       const tbody = document.getElementById('lbTableBody');
-      
       let list = [...mockLeaderboard];
 
       if (currentServerFilter === 'my' && currentUser) {
-        list = list.filter(item => item.server === (currentUser.server || '02'));
+        const userSrv = String(currentUser.server || '02').padStart(2, '0');
+        list = list.filter(item => item.server === userSrv);
       }
 
       tbody.innerHTML = list.map((item, index) => {
-        let rankClass = '';
         let rankSymbol = index + 1;
-
         if (index === 0) rankSymbol = '🥇';
         else if (index === 1) rankSymbol = '🥈';
         else if (index === 2) rankSymbol = '🥉';
@@ -641,7 +694,7 @@
           <tr>
             <td><span class="rank-badge">${rankSymbol}</span></td>
             <td><strong>${item.nick}</strong></td>
-            <td><span class="server-badge">${item.server}</span></td>
+            <td>${getServerLogoSVG(item.server)}</td>
             <td style="font-family: monospace; font-weight: 600;">${item[currentPeriod]}</td>
           </tr>
         `;
@@ -658,7 +711,6 @@
     });
 
     function logout() {
-      localStorage.removeItem('userSession');
       location.reload();
     }
   </script>
