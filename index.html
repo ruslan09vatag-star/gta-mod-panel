@@ -147,9 +147,9 @@
   </div>
 
   <script>
-    // 🔑 ВСТАВ СВІЙ СТРАВЖНІЙ КЛЮЧ АНОНІМНОСТІ ВІД SUPABASE СЮДИ:
+    // Налаштування вашого Supabase проєкту
     const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
-    const SUPABASE_KEY = 'ТВІЙ_ANON_KEY_З_SUPABASE'; 
+    const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35'; 
 
     let supabase;
 
@@ -168,8 +168,8 @@
       e.preventDefault();
       errorMessage.style.display = 'none';
 
-      if (!supabase || SUPABASE_KEY.includes('ТВІЙ_ANON_KEY')) {
-        showError('❌ Вкажіть правильний SUPABASE_KEY у коді!');
+      if (!supabase) {
+        showError('❌ Помилка підключення Supabase SDK.');
         return;
       }
 
@@ -195,12 +195,16 @@
           return;
         }
 
+        // Зберігаємо авторизованого користувача
         localStorage.setItem('userSession', JSON.stringify(user));
-        alert(`Вітаємо, ${user.nick || 'модератор'}!`);
+        alert(`Ласкаво просимо, ${user.nick || 'модератор'}!`);
+
+        // Якщо в майбутньому зробиш головну сторінку — вкажи її тут, наприклад:
+        // window.location.href = 'dashboard.html';
 
       } catch (err) {
         console.error(err);
-        showError('❌ Виникла помилка під час входу.');
+        showError('❌ Виникла помилка під час авторизації.');
       }
     });
 
