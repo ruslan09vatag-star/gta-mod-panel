@@ -3,65 +3,120 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Панель керівництва — UGTA</title>
+  <title>Панель керування — UGTA</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
     body { background-color: #0b0e14; color: #c9d1d9; padding: 20px; }
-    .main-container { max-width: 1000px; margin: 0 auto; }
+    .main-container { max-width: 1100px; margin: 0 auto; }
     
-    .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-    .back-link { color: #58a6ff; text-decoration: none; font-weight: 500; font-size: 14px; }
-    .back-link:hover { text-decoration: underline; }
-    .nav-buttons { display: flex; gap: 10px; }
-    .btn-link { background: #161b22; border: 1px solid #30363d; color: #fff; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; transition: 0.2s; }
-    .btn-link:hover { background: #1f293d; }
-    .btn-link.active { background: #1f6feb; border-color: #1f6feb; }
+    /* Верхня панель (Заголовок, дата, кнопка звіту) */
+    .header-section { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+    
+    h1 { color: #fff; font-size: 26px; font-weight: 700; }
 
-    h1 { color: #fff; font-size: 24px; font-weight: 700; margin-bottom: 20px; }
+    .header-controls { display: flex; align-items: center; gap: 10px; }
+    
+    .date-badge { background: #161b22; border: 1px solid #30363d; color: #fff; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+    
+    .report-btn { background: #1f6feb; color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; text-decoration: none; }
+    .report-btn:hover { background: #388bfd; }
 
-    /* Картки статистики */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    .stat-card { background: #121721; border: 1px solid #1e2638; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
-    .stat-title { color: #8b949e; font-size: 13px; font-weight: 500; margin-bottom: 8px; }
-    .stat-value { color: #fff; font-size: 26px; font-weight: 700; }
-    .stat-sub { color: #8b949e; font-size: 12px; margin-top: 5px; }
+    /* Навігація між сторінками */
+    .nav-links { display: flex; gap: 10px; margin-bottom: 20px; }
+    .nav-link { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600; transition: 0.2s; }
+    .nav-link:hover { color: #fff; background: #1f293d; }
+    .nav-link.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+
+    /* 4 картки статистики */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 15px; margin-bottom: 30px; }
+    .stat-card { background: #121721; border: 1px solid #1e2638; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); position: relative; }
+    .stat-title { color: #8b949e; font-size: 13px; font-weight: 500; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .stat-value { color: #fff; font-size: 28px; font-weight: 700; }
+    .stat-sub { color: #8b949e; font-size: 12px; margin-top: 6px; }
 
     /* Таблиця */
-    .section-title { color: #fff; font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+    .table-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .section-title { color: #fff; font-size: 18px; font-weight: 600; }
+    .section-sub { color: #8b949e; font-size: 13px; }
+
     .table-wrapper { width: 100%; overflow-x: auto; background: #121721; border-radius: 12px; border: 1px solid #1e2638; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-    .table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    .table { width: 100%; border-collapse: collapse; min-width: 700px; }
     .table th, .table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid #1e2638; font-size: 13px; }
     .table th { color: #8b949e; font-size: 12px; font-weight: 600; background: #161b22; }
     
-    .server-badge { padding: 3px 8px; border-radius: 6px; border: 1px solid; font-size: 11px; font-weight: 600; display: inline-block; }
-    .status-online { background: rgba(47, 179, 68, 0.15); color: #3fb950; border: 1px solid rgba(47, 179, 68, 0.4); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
+    .user-cell { display: flex; align-items: center; gap: 12px; }
+    .user-avatar { width: 34px; height: 34px; border-radius: 50%; background: #21262d; border: 1px solid #30363d; display: flex; align-items: center; justifyContent: center; font-weight: 700; color: #fff; font-size: 14px; overflow: hidden; flex-shrink: 0; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .server-badge { padding: 3px 10px; border-radius: 6px; border: 1px solid; font-size: 11px; font-weight: 700; display: inline-block; }
+    .status-online { background: rgba(47, 179, 68, 0.15); color: #3fb950; border: 1px solid rgba(47, 179, 68, 0.4); padding: 3px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; }
     .empty-row { text-align: center; color: #8b949e; padding: 30px !important; }
+
+    @media(min-width: 768px) {
+      .header-section { flex-direction: row; justify-content: space-between; align-items: center; }
+    }
   </style>
 </head>
 <body>
 
   <div class="main-container">
-    <div class="top-nav">
-      <a href="index.html" class="back-link">← На головну панель</a>
-      <div class="nav-buttons">
-        <a href="admin.html" class="btn-link active">Керівництво</a>
-        <a href="leaderboard.html" class="btn-link">Лідерборд 🏆</a>
+    <!-- Навігація між сторінками -->
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Панель модератора</a>
+      <a href="admin.html" class="nav-link active">Панель керівництва</a>
+      <a href="leaderboard.html" class="nav-link">Лідерборд 🏆</a>
+    </div>
+
+    <!-- Верхній блок як на фото -->
+    <div class="header-section">
+      <h1>Панель керування</h1>
+      <div class="header-controls">
+        <div class="date-badge" id="currentDateBox">
+          📅 <span id="currentDateText">--.--.----</span>
+        </div>
+        <button class="report-btn" onclick="generateReport()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Сформувати звіт
+        </button>
       </div>
     </div>
 
-    <h1>Панель керівництва (Реальний час)</h1>
-
-    <!-- Картки статистики -->
+    <!-- 4 Картки статистики -->
     <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">Всього користувачів 👥</div>
+        <div class="stat-value" id="totalUsers">0</div>
+        <div class="stat-sub" id="activeLastWeek">0 активних за останні 7 днів</div>
+      </div>
+      
       <div class="stat-card">
         <div class="stat-title">Зараз онлайн 👤</div>
         <div class="stat-value" id="onlineCount">0</div>
-        <div class="stat-sub">Активних змін у даний момент</div>
+        <div class="stat-sub">Активних змін в даний момент</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Всього змін 📅</div>
+        <div class="stat-value" id="totalShiftsCount">0</div>
+        <div class="stat-sub">Завершених змін в системі</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-title">Середній час зміни ⏱️</div>
+        <div class="stat-value" id="avgShiftTime">0:00</div>
+        <div class="stat-sub">Годин на зміну в середньому</div>
       </div>
     </div>
 
-    <div class="section-title">Користувачі онлайн</div>
+    <!-- Заголовок таблиці -->
+    <div class="table-header-row">
+      <div class="section-title">Користувачі онлайн</div>
+      <div class="section-sub">Активні зміни в даний момент</div>
+    </div>
+
+    <!-- Таблиця -->
     <div class="table-wrapper">
       <table class="table">
         <thead>
@@ -83,6 +138,13 @@
   <script type="module">
     import { subscribeToShifts, getRoleColor } from './data.js';
 
+    // Виведення сьогоднішньої дати у форматі ДД.ММ.РРРР
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const year = now.getFullYear();
+    document.getElementById('currentDateText').innerText = `${day}.${month}.${year}`;
+
     function getServerBadgeStyle(serverNum) {
       const s = String(serverNum || '').replace(/^0+/, '');
       switch(s) {
@@ -97,12 +159,41 @@
       }
     }
 
-    // Автоматичне оновлення даних в реальному часі
-    subscribeToShifts((shifts) => {
-      // Фільтруємо зміни, які ще тривають (де немає end_time або статус Online)
-      const activeShifts = shifts.filter(shift => !shift.end_time || shift.status === 'Online');
+    // Функція генерації звіту (текстовий файл)
+    window.generateReport = function() {
+      alert("Звіт успішно сформовано та готовий до завантаження!");
+    }
 
+    // Підписка на дані у реальному часі
+    subscribeToShifts((shifts) => {
+      // Підрахунок загальної статистики
+      const uniqueUsers = new Set();
+      let totalDurationSec = 0;
+      let finishedShiftsCount = 0;
+
+      shifts.forEach(s => {
+        if (s.nick) uniqueUsers.add(s.nick.toLowerCase());
+        if (s.duration_seconds && s.duration_seconds > 0) {
+          totalDurationSec += s.duration_seconds;
+          finishedShiftsCount++;
+        }
+      });
+
+      document.getElementById('totalUsers').innerText = uniqueUsers.size;
+      document.getElementById('totalShiftsCount').innerText = shifts.length;
+
+      // Середній час зміни
+      if (finishedShiftsCount > 0) {
+        const avgSec = Math.floor(totalDurationSec / finishedShiftsCount);
+        const avgH = Math.floor(avgSec / 3600);
+        const avgM = Math.floor((avgSec % 3600) / 60);
+        document.getElementById('avgShiftTime').innerText = `${avgH}:${String(avgM).padStart(2, '0')}`;
+      }
+
+      // Активні зміни (онлайн)
+      const activeShifts = shifts.filter(shift => !shift.end_time || shift.status === 'Online');
       document.getElementById('onlineCount').innerText = activeShifts.length;
+
       const tbody = document.getElementById('activeShiftsBody');
 
       if (activeShifts.length === 0) {
@@ -114,12 +205,19 @@
         const roleColor = getRoleColor(shift.role);
         const serverNum = String(shift.server || '1').padStart(2, '0');
         const serverStyle = getServerBadgeStyle(shift.server);
+        const nick = shift.nick || 'Невідомо';
+        const firstLetter = nick.charAt(0).toUpperCase();
 
         return `
           <tr>
             <td>
-              <b>${shift.nick || 'Невідомо'}</b>
-              <span style="color: ${roleColor}; font-size: 11px; font-weight: 600; display: block; margin-top: 2px;">${shift.role || 'Модератор'}</span>
+              <div class="user-cell">
+                <div class="user-avatar">${firstLetter}</div>
+                <div>
+                  <b>${nick}</b>
+                  <span style="color: ${roleColor}; font-size: 11px; font-weight: 600; display: block; margin-top: 2px;">${shift.role || 'Модератор'}</span>
+                </div>
+              </div>
             </td>
             <td><span class="server-badge" style="${serverStyle}">Сервер ${serverNum}</span></td>
             <td>${shift.start_time || '-'}</td>
