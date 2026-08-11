@@ -15,7 +15,7 @@
     .user-avatar { background: linear-gradient(135deg, #1f6feb, #1158c7); color: #fff; font-weight: 700; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 20px; box-shadow: 0 2px 10px rgba(31,111,235,0.3); }
     .user-details { display: flex; flex-direction: column; gap: 3px; }
     .user-name { font-weight: 600; color: #fff; font-size: 16px; display: flex; align-items: center; gap: 8px; }
-    .user-role-badge { background: #1f293d; color: #58a6ff; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 6px; border: 1px solid #30363d; display: inline-block; width: fit-content; }
+    .user-role-badge { background: #1f293d; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; border: 1px solid #30363d; display: inline-block; width: fit-content; }
     
     .nav-links { display: flex; gap: 8px; align-items: center; }
     .nav-btn { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; transition: 0.2s; }
@@ -101,12 +101,23 @@
 
     const nick = currentUser.nick || 'Користувач';
     const server = currentUser.server || '02';
-    // Беремо реальну роль з акаунта (якщо вона там є, інакше пишемо "Модератор" або "КТП")
     const role = currentUser.role || currentUser.status || 'Модератор';
+
+    // Функція для визначення кольору ролі
+    function getRoleColor(r) {
+      const lower = r.toLowerCase();
+      if (lower.includes('ктп')) return '#f85149';   // Червоний
+      if (lower.includes('зктп')) return '#3fb950';  // Зелений
+      if (lower.includes('s.m') || lower.includes('sm')) return '#bc8cff'; // Фіолетовий
+      return '#f0883e'; // Модератор за замовчуванням - оранжевий
+    }
 
     document.getElementById('userName').textContent = nick;
     document.getElementById('userAvatar').textContent = nick.charAt(0).toUpperCase();
-    document.getElementById('userRoleBadge').textContent = `${role} • Сервер ${server}`;
+    
+    const roleBadge = document.getElementById('userRoleBadge');
+    roleBadge.textContent = `${role} • Сервер ${server}`;
+    roleBadge.style.color = getRoleColor(role);
 
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
