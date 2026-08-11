@@ -5,9 +5,11 @@
   <title>Вхід — Панель модерації</title>
   <style>
     body { background: #0b0e14; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; }
-    .card { background: #121721; padding: 30px; border-radius: 12px; width: 300px; }
-    input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #30363d; background: #0b0e14; color: #fff; }
-    button { width: 100%; padding: 10px; background: #238636; border: none; color: #fff; border-radius: 6px; cursor: pointer; }
+    .card { background: #121721; padding: 30px; border-radius: 12px; width: 300px; border: 1px solid #30363d; }
+    h2 { margin-top: 0; text-align: center; }
+    input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #30363d; background: #0b0e14; color: #fff; box-sizing: border-box; }
+    button { width: 100%; padding: 10px; background: #238636; border: none; color: #fff; border-radius: 6px; cursor: pointer; font-weight: 600; margin-top: 10px; }
+    button:hover { background: #2ea043; }
   </style>
 </head>
 <body>
@@ -20,12 +22,20 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const supabase = supabase.createClient('ВАШ_URL_SUPABASE', 'ВАШ_KEY_SUPABASE');
+    // Підключення до бази даних
+    const supabase = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
+
     async function login() {
       const nick = document.getElementById('nick').value.trim();
       const password = document.getElementById('password').value.trim();
       
-      const { data, error } = await supabase.from('profiles').select('*').eq('nick', nick).eq('password', password).single();
+      // Перевірка в базі даних за ніком та паролем
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('nick', nick)
+        .eq('password', password)
+        .single();
       
       if (data) {
         localStorage.setItem('ugta_current_user', JSON.stringify(data));
