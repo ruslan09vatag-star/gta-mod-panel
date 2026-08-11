@@ -16,7 +16,6 @@
       min-height: 100vh; 
       padding: 20px;
     }
-    
     .card { 
       background: #121721; 
       padding: 35px 30px; 
@@ -27,81 +26,29 @@
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); 
       text-align: center;
     }
-
-    .logo-container {
-      margin-bottom: 20px;
-    }
-
-    .logo-img {
-      max-width: 160px;
-      height: auto;
-      margin-bottom: 8px;
-      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
-    }
-
-    .panel-subtitle {
-      color: #8b949e;
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 25px;
-    }
-
-    .input-group {
-      text-align: left;
-      margin-bottom: 16px;
-    }
-
-    .input-label {
-      display: block;
-      font-size: 12px;
-      font-weight: 500;
-      color: #8b949e;
-      margin-bottom: 6px;
-    }
-
+    .logo-container { margin-bottom: 20px; }
+    .logo-img { max-width: 160px; height: auto; margin-bottom: 8px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
+    .panel-subtitle { color: #8b949e; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 25px; }
+    .input-group { text-align: left; margin-bottom: 16px; }
+    .input-label { display: block; font-size: 12px; font-weight: 500; color: #8b949e; margin-bottom: 6px; }
     input { 
-      width: 100%; 
-      padding: 12px 14px; 
-      border-radius: 8px; 
-      border: 1px solid #30363d; 
-      background: #0b0e14; 
-      color: #fff; 
-      font-size: 14px; 
-      outline: none; 
-      transition: 0.2s;
+      width: 100%; padding: 12px 14px; border-radius: 8px; 
+      border: 1px solid #30363d; background: #0b0e14; color: #fff; 
+      font-size: 14px; outline: none; transition: 0.2s; 
     }
-
-    input:focus { 
-      border-color: #1f6feb; 
-      box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15); 
-    }
-
+    input:focus { border-color: #1f6feb; box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15); }
     button { 
-      width: 100%; 
-      padding: 12px; 
-      background: #238636; 
-      border: none; 
-      color: #fff; 
-      border-radius: 8px; 
-      cursor: pointer; 
-      font-size: 15px; 
-      font-weight: 600; 
-      margin-top: 10px; 
-      transition: 0.2s; 
+      width: 100%; padding: 12px; background: #238636; border: none; 
+      color: #fff; border-radius: 8px; cursor: pointer; font-size: 15px; 
+      font-weight: 600; margin-top: 10px; transition: 0.2s; 
     }
-
-    button:hover { 
-      background: #2ea043; 
-    }
+    button:hover { background: #2ea043; }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="logo-container">
-      <!-- Тут використовується ваше зображення логотипу -->
-      <img src="https://i.imgur.com/your_logo_link.png" alt="Ukraine GTA" class="logo-img" id="logoImg">
+      <img src="https://i.imgur.com/your_logo_link.png" alt="Ukraine GTA" class="logo-img">
       <div class="panel-subtitle">Moderation Panel</div>
     </div>
 
@@ -115,20 +62,14 @@
       <input type="password" id="password" placeholder="••••••••">
     </div>
 
-    <button onclick="login()">Увійти в систему</button>
+    <button onclick="handleLogin()">Увійти в систему</button>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Підключення до бази даних Supabase
-    const supabase = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
+    const _supabase = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
 
-    // Автоматичне підставлення вашого логотипу з попереднього повідомлення
-    const logoImg = document.getElementById('logoImg');
-    // Якщо у вас картинка завантажена в репозиторій, можете просто написати src="логотип.png"
-    // Або скористатись посиланням вище.
-    
-    async function login() {
+    async function handleLogin() {
       const nick = document.getElementById('nick').value.trim();
       const password = document.getElementById('password').value.trim();
       
@@ -137,7 +78,7 @@
         return;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await _supabase
         .from('profiles')
         .select('*')
         .eq('nick', nick)
