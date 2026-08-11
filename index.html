@@ -119,7 +119,6 @@
       margin: 0 auto;
     }
 
-    /* Верхня шапка */
     .header-nav {
       display: flex;
       align-items: center;
@@ -128,7 +127,6 @@
       flex-wrap: wrap;
     }
 
-    /* Профіль модератора */
     .user-profile-btn {
       background: #121721;
       border: 1px solid #1e2638;
@@ -167,7 +165,6 @@
       box-shadow: 0 0 10px rgba(233, 30, 99, 0.4);
     }
 
-    /* Випадаюче меню Налаштування */
     .profile-dropdown {
       position: absolute;
       top: 115%;
@@ -198,7 +195,6 @@
       color: #fff;
     }
 
-    /* Кнопки навігації */
     .nav-btn {
       background: #121721;
       border: 1px solid #1e2638;
@@ -216,7 +212,6 @@
       color: #ffffff;
     }
 
-    /* Головна секція */
     .page-title {
       color: #ffffff;
       font-size: 26px;
@@ -258,7 +253,6 @@
       background: #da3633;
     }
 
-    /* Картки часу */
     .cards-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -312,13 +306,12 @@
         <p>UGTA Moderation Panel</p>
       </div>
 
-      <form id="loginForm" autocomplete="off">
+      <form id="loginForm" autocomplete="off" onsubmit="return false;">
         <div class="input-group">
           <label for="accountNumber">Номер акаунта</label>
           <input 
             type="text" 
             id="accountNumber" 
-            name="acc_num_field"
             placeholder="Введіть номер акаунта" 
             required 
             autocomplete="off"
@@ -330,14 +323,13 @@
           <input 
             type="password" 
             id="password" 
-            name="acc_pass_field"
             placeholder="Введіть пароль" 
             required 
             autocomplete="new-password"
           />
         </div>
 
-        <button type="submit" class="login-btn">Увійти</button>
+        <button type="button" class="login-btn" id="submitBtn">Увійти</button>
         <div id="errorMessage"></div>
       </form>
     </div>
@@ -345,15 +337,12 @@
 
   <!-- 2. ГОЛОВНА ПАНЕЛЬ МОДЕРАТОРА -->
   <div id="dashboardScreen">
-    
-    <!-- Верхня навігація -->
     <div class="header-nav">
       <div class="user-profile-btn" id="profileBtn">
         <span class="user-name" id="userNick">Завантаження...</span>
         <span class="role-badge" id="userRole">S.M</span>
         <span class="server-badge" id="userServer">02</span>
 
-        <!-- Выпадающее меню -->
         <div class="profile-dropdown" id="profileDropdown">
           <div class="dropdown-item" onclick="alert('Розділ налаштувань у розробці')">Налаштування</div>
           <div class="dropdown-item" onclick="logout()" style="color: #f85149;">Вийти</div>
@@ -366,7 +355,6 @@
       <button class="nav-btn">Гра</button>
     </div>
 
-    <!-- Заголовок і статус -->
     <h1 class="page-title">Панель модерації</h1>
 
     <div class="status-bar">
@@ -376,7 +364,6 @@
       <button class="shift-toggle-btn" id="shiftBtn" onclick="toggleShift()">Почати зміну</button>
     </div>
 
-    <!-- Картки статистики часу -->
     <div class="cards-grid">
       <div class="card">
         <div class="card-title">Сьогодні</div>
@@ -391,17 +378,17 @@
       </div>
     </div>
 
-    <!-- Останні зміни -->
     <div class="recent-shifts-card">
       <div class="card-title">Останні зміни</div>
     </div>
-
   </div>
 
   <script>
     const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
+    // Використовуємо іншу назву змінної, щоб уникнути конфліктів
+    const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
     let isOnShift = false;
     let timerInterval = null;
@@ -421,13 +408,25 @@
       }
     });
 
-    // Обробка форми Входу
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // Клік по кнопці "Увійти"
+    document.getElementById('submitBtn').addEventListener('click', async () => {
       const accountNumber = document.getElementById('accountNumber').value.trim();
       const password = document.getElementById('password').value.trim();
+      const errDiv = document.getElementById('errorMessage');
 
-      const { data: user, error } = await supabase
+      if (!accountNumber || !password) {
+        errDiv.textContent = '❌ Заповніть усі поля!';
+        errDiv.style.display = 'block';
+        return;
+      }
+
+      if (!dbClient) {
+        errDiv.textContent = '❌ Помилка ініціалізації Supabase!';
+        errDiv.style.display = 'block';
+        return;
+      }
+
+      const { data: user, error } = await dbClient
         .from('profiles')
         .select('*')
         .eq('account_number', accountNumber)
@@ -435,7 +434,6 @@
         .maybeSingle();
 
       if (error || !user) {
-        const errDiv = document.getElementById('errorMessage');
         errDiv.textContent = '❌ Невірний номер акаунта або пароль!';
         errDiv.style.display = 'block';
         return;
@@ -478,7 +476,6 @@
         shiftBtn.textContent = 'Завершити зміну';
         shiftBtn.classList.add('active');
 
-        // Запуск таймера
         timerInterval = setInterval(() => {
           totalSeconds++;
           const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
