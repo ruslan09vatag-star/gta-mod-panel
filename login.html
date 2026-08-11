@@ -27,20 +27,48 @@
       text-align: center;
     }
     .logo-container { margin-bottom: 20px; }
-    .logo-img { max-width: 160px; height: auto; margin-bottom: 8px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
-    .panel-subtitle { color: #8b949e; font-size: 13px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 25px; }
+    .logo-img { 
+      max-width: 140px; 
+      height: auto; 
+      object-fit: contain; 
+      margin-bottom: 6px; 
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); 
+    }
+    .panel-subtitle { color: #8b949e; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 25px; }
     .input-group { text-align: left; margin-bottom: 16px; }
     .input-label { display: block; font-size: 12px; font-weight: 500; color: #8b949e; margin-bottom: 6px; }
-    input { 
+    input[type="text"], input[type="password"] { 
       width: 100%; padding: 12px 14px; border-radius: 8px; 
       border: 1px solid #30363d; background: #0b0e14; color: #fff; 
       font-size: 14px; outline: none; transition: 0.2s; 
     }
     input:focus { border-color: #1f6feb; box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.15); }
+    
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      text-align: left;
+    }
+    .checkbox-container input {
+      width: 16px;
+      height: 16px;
+      accent-color: #238636;
+      cursor: pointer;
+    }
+    .checkbox-container label {
+      font-size: 13px;
+      color: #8b949e;
+      cursor: pointer;
+      user-select: none;
+    }
+
     button { 
       width: 100%; padding: 12px; background: #238636; border: none; 
       color: #fff; border-radius: 8px; cursor: pointer; font-size: 15px; 
-      font-weight: 600; margin-top: 10px; transition: 0.2s; 
+      font-weight: 600; margin-top: 14px; transition: 0.2s; 
     }
     button:hover { background: #2ea043; }
   </style>
@@ -48,7 +76,8 @@
 <body>
   <div class="card">
     <div class="logo-container">
-      <img src="https://i.imgur.com/your_logo_link.png" alt="Ukraine GTA" class="logo-img">
+      <!-- Ваше зображення логотипу -->
+      <img src="https://i.ibb.co/3ykG8L3/image.png" alt="Ukraine GTA" class="logo-img">
       <div class="panel-subtitle">Moderation Panel</div>
     </div>
 
@@ -62,6 +91,11 @@
       <input type="password" id="password" placeholder="••••••••">
     </div>
 
+    <div class="checkbox-container">
+      <input type="checkbox" id="rememberMe">
+      <label for="rememberMe">Запам'ятати мене</label>
+    </div>
+
     <button onclick="handleLogin()">Увійти в систему</button>
   </div>
 
@@ -69,9 +103,19 @@
   <script>
     const _supabase = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
 
+    // Перевірка збереженого користувача при завантаженні (якщо натискали "Запам'ятати мене")
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedNick = localStorage.getItem('ugta_saved_nick');
+      if (savedNick) {
+        document.getElementById('nick').value = savedNick;
+        document.getElementById('rememberMe').checked = true;
+      }
+    });
+
     async function handleLogin() {
       const nick = document.getElementById('nick').value.trim();
       const password = document.getElementById('password').value.trim();
+      const rememberMe = document.getElementById('rememberMe').checked;
       
       if (!nick || !password) {
         alert('Будь ласка, заповніть усі поля!');
@@ -87,6 +131,13 @@
       
       if (data) {
         localStorage.setItem('ugta_current_user', JSON.stringify(data));
+        
+        if (rememberMe) {
+          localStorage.setItem('ugta_saved_nick', nick);
+        } else {
+          localStorage.removeItem('ugta_saved_nick');
+        }
+
         window.location.href = 'index.html';
       } else {
         alert('Невірний нікнейм або пароль!');
