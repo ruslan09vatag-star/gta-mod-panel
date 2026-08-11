@@ -107,7 +107,7 @@
 
     <div class="section-title">Останні зміни</div>
     <div class="history-list" id="historyList">
-      <div style="color: #8b949e; font-size: 14px;">Ще немає завершених змін.</div>
+      <div style="color: #8b949e; font-size: 14px;">Завантаження історії...</div>
     </div>
   </div>
 
@@ -169,6 +169,7 @@
       } else {
         const durationSec = Math.max(1, Math.floor((currentTime - shiftStartTime) / 1000));
         
+        // Зберігаємо зміну в Firebase
         await saveShift({
           nick: nick,
           server: server,
@@ -177,9 +178,13 @@
           duration_seconds: durationSec
         });
 
+        // Повністю скидаємо статус
         isOnDuty = false;
+        shiftStartTime = 0;
         localStorage.removeItem('ugta_is_on_duty_' + nick);
         localStorage.removeItem('ugta_shift_start_' + nick);
+        
+        // Оновлюємо інтерфейс і історію
         updateShiftUI();
         loadShiftsHistory();
       }
