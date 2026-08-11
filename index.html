@@ -6,133 +6,44 @@
   <title>UGTA Moderation Panel</title>
   
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: #0b0e14; color: #c9d1d9; min-height: 100vh; padding: 24px 40px; }
+    .main-wrapper { max-width: 1300px; margin: 0 auto; }
 
-    body {
-      background-color: #0b0e14;
-      color: #c9d1d9;
-      min-height: 100vh;
-      padding: 24px 40px;
-    }
-
-    .main-wrapper {
-      max-width: 1300px;
-      margin: 0 auto;
-    }
-
-    /* === ТОЧНИЙ ЛОГОТИП СЕРВЕРА === */
     .server-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 32px;
-      height: 40px;
-      clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%);
-      color: #ffffff;
-      font-weight: 900;
-      font-size: 16px;
-      letter-spacing: -1px;
-      user-select: none;
-      vertical-align: middle;
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 40px; clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%);
+      color: #ffffff; font-weight: 900; font-size: 16px; letter-spacing: -1px; user-select: none; vertical-align: middle;
     }
 
-    .header-nav {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 30px;
-      flex-wrap: wrap;
-    }
-
-    .user-profile-btn {
-      background: #121721;
-      border: 1px solid #1e2638;
-      border-radius: 12px;
-      padding: 8px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      position: relative;
-      user-select: none;
-    }
-
+    .header-nav { display: flex; align-items: center; gap: 16px; margin-bottom: 30px; flex-wrap: wrap; }
+    .user-profile-btn { background: #121721; border: 1px solid #1e2638; border-radius: 12px; padding: 8px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; position: relative; user-select: none; }
     .user-name { color: #ffffff; font-weight: 700; font-size: 15px; }
 
-    .role-badge {
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-
+    .role-badge { font-size: 11px; padding: 4px 8px; border-radius: 6px; font-weight: 700; text-transform: uppercase; }
     .role-moderator { background: #1e263d; color: #58a6ff; border: 1px solid rgba(88, 166, 255, 0.3); }
     .role-sm { background: #1e2e1e; color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.4); }
     .role-zktp { background: #3d2b1e; color: #d29922; border: 1px solid rgba(210, 153, 34, 0.3); }
     .role-ktp { background: #3d1e1e; color: #f85149; border: 1px solid rgba(248, 81, 73, 0.3); }
 
-    .profile-dropdown {
-      position: absolute;
-      top: 115%;
-      left: 0;
-      background: #121721;
-      border: 1px solid #1e2638;
-      border-radius: 8px;
-      width: 100%;
-      display: none;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-      z-index: 100;
-      overflow: hidden;
-    }
-
+    .profile-dropdown { position: absolute; top: 115%; left: 0; background: #121721; border: 1px solid #1e2638; border-radius: 8px; width: 100%; display: none; box-shadow: 0 8px 20px rgba(0,0,0,0.4); z-index: 100; overflow: hidden; }
     .profile-dropdown.active { display: block; }
     .dropdown-item { padding: 10px 16px; color: #c9d1d9; font-size: 14px; transition: background 0.2s; }
     .dropdown-item:hover { background: #1e2638; color: #fff; }
 
-    .nav-btn {
-      background: #121721;
-      border: 1px solid #1e2638;
-      border-radius: 20px;
-      padding: 8px 18px;
-      color: #8b949e;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .nav-btn:hover, .nav-btn.active {
-      border-color: #388bfd;
-      color: #ffffff;
-      background: #1e2638;
-    }
+    .nav-btn { background: #121721; border: 1px solid #1e2638; border-radius: 20px; padding: 8px 18px; color: #8b949e; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .nav-btn:hover, .nav-btn.active { border-color: #388bfd; color: #ffffff; background: #1e2638; }
 
     .page-title { color: #ffffff; font-size: 26px; font-weight: 700; margin-bottom: 24px; }
-
     .status-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
     .status-text { font-size: 15px; font-weight: 600; }
     .status-off { color: #f85149; }
     .status-on { color: #3fb950; }
 
-    .shift-toggle-btn {
-      background: #238636;
-      border: none;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
+    .shift-toggle-btn { background: #238636; border: none; color: #fff; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
     .shift-toggle-btn:hover { background: #2ea043; }
     .shift-toggle-btn.active { background: #da3633; }
 
@@ -144,110 +55,26 @@
 
     .recent-shifts-card { background: #121721; border: 1px solid #1e2638; border-radius: 12px; padding: 24px; margin-bottom: 30px; }
     .shifts-list { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
-    .shift-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #0b0e14;
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: 1px solid #1e2638;
-      font-size: 14px;
-    }
+    .shift-item { display: flex; justify-content: space-between; align-items: center; background: #0b0e14; padding: 12px 16px; border-radius: 8px; border: 1px solid #1e2638; font-size: 14px; }
     .shift-time { color: #8b949e; font-size: 13px; }
     .shift-duration { color: #3fb950; font-weight: 600; font-family: monospace; }
 
-    /* ЛІДЕРБОРД */
     #leaderboardSection { display: none; }
-    
-    .lb-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
+    .lb-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
 
-    .sliding-toggle {
-      position: relative;
-      background: #121721;
-      border: 1px solid #1e2638;
-      border-radius: 30px;
-      padding: 4px;
-      display: flex;
-      width: 320px;
-    }
-
-    .slider-pill {
-      position: absolute;
-      top: 4px;
-      bottom: 4px;
-      width: calc(33.33% - 4px);
-      background: #1f6feb;
-      border-radius: 25px;
-      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 1;
-    }
-
-    .toggle-btn {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: #8b949e;
-      font-weight: 600;
-      font-size: 13px;
-      padding: 8px 0;
-      cursor: pointer;
-      z-index: 2;
-      transition: color 0.2s;
-    }
-
+    .sliding-toggle { position: relative; background: #121721; border: 1px solid #1e2638; border-radius: 30px; padding: 4px; display: flex; width: 320px; }
+    .slider-pill { position: absolute; top: 4px; bottom: 4px; width: calc(33.33% - 4px); background: #1f6feb; border-radius: 25px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
+    .toggle-btn { flex: 1; background: transparent; border: none; color: #8b949e; font-weight: 600; font-size: 13px; padding: 8px 0; cursor: pointer; z-index: 2; transition: color 0.2s; }
     .toggle-btn.active { color: #ffffff; }
 
-    .server-filter-btn {
-      background: #121721;
-      border: 1px solid #1e2638;
-      color: #8b949e;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
+    .server-filter-btn { background: #121721; border: 1px solid #1e2638; color: #8b949e; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+    .server-filter-btn.active { background: #1f6feb; color: #fff; border-color: #1f6feb; }
 
-    .server-filter-btn.active {
-      background: #1f6feb;
-      color: #fff;
-      border-color: #1f6feb;
-    }
-
-    .lb-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: #121721;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #1e2638;
-    }
-
-    .lb-table th, .lb-table td {
-      padding: 16px 20px;
-      text-align: left;
-    }
-
-    .lb-table th {
-      background: #161b26;
-      color: #8b949e;
-      font-size: 13px;
-      font-weight: 600;
-      border-bottom: 1px solid #1e2638;
-    }
-
+    .lb-table { width: 100%; border-collapse: collapse; background: #121721; border-radius: 12px; overflow: hidden; border: 1px solid #1e2638; }
+    .lb-table th, .lb-table td { padding: 16px 20px; text-align: left; }
+    .lb-table th { background: #161b26; color: #8b949e; font-size: 13px; font-weight: 600; border-bottom: 1px solid #1e2638; }
     .lb-table tr { border-bottom: 1px solid #1e2638; transition: background 0.2s; }
     .lb-table tr:hover { background: #1a202c; }
-
     .rank-badge { font-weight: 700; width: 30px; display: inline-block; }
   </style>
 </head>
@@ -293,7 +120,7 @@
         <div class="card">
           <div class="card-title">Вчора</div>
           <div class="card-date" id="yesterdayDate">2026-08-10</div>
-          <div class="card-timer">00:00:00</div>
+          <div class="card-timer" id="yesterdayTimer">00:00:00</div>
         </div>
       </div>
 
@@ -332,15 +159,20 @@
             <th>Час на зміні</th>
           </tr>
         </thead>
-        <tbody id="lbTableBody"></tbody>
+        <tbody id="lbTableBody">
+          <tr><td colspan="4" style="text-align: center; color: #6e7681;">Завантаження лідерборду...</td></tr>
+        </tbody>
       </table>
     </div>
   </div>
 
   <script>
-    // Перевірка авторизації при завантаженні головної сторінки
+    const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
+    const dbClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
     const currentUser = JSON.parse(localStorage.getItem('ugta_current_user'));
-    if (!currentUser) {
+    if (!currentUser || !dbClient) {
       window.location.href = 'login.html';
     }
 
@@ -350,7 +182,7 @@
     };
 
     function getServerLogoHTML(serverNum) {
-      const numStr = String(serverNum).padStart(2, '0');
+      const numStr = String(serverNum || '05').padStart(2, '0');
       const bg = serverColors[numStr] || serverColors['05'];
       return `<div class="server-badge" style="background-color: ${bg};">${numStr}</div>`;
     }
@@ -358,29 +190,22 @@
     let isOnShift = false;
     let timerInterval = null;
     let shiftStartTime = null;
-    let totalSeconds = 0;
-
-    const mockLeaderboard = [
-      { nick: 'Олександр Навроцький', server: '05', role: 'S.M', day: '05:20:10', week: '24:15:00', month: '98:40:00' },
-      { nick: 'Максим Коваль', server: '02', role: 'Moderator', day: '04:10:00', week: '18:30:00', month: '72:10:00' },
-      { nick: 'Артем Бондар', server: '02', role: 'ЗКТП', day: '03:45:12', week: '16:00:00', month: '65:00:00' },
-      { nick: 'Дмитро Шевченко', server: '01', role: 'КТП', day: '02:30:00', week: '12:20:00', month: '50:15:00' },
-      { nick: 'Богдан Яковенко', server: '03', role: 'Moderator', day: '01:15:00', week: '08:10:00', month: '34:00:00' },
-      { nick: 'Ігор Мельник', server: '06', role: 'S.M', day: '00:50:00', week: '05:40:00', month: '22:10:00' },
-      { nick: 'Павло Ткаченко', server: '07', role: 'Moderator', day: '00:30:00', week: '03:10:00', month: '15:00:00' }
-    ];
+    let totalSecondsToday = 0;
 
     let currentPeriod = 'day';
     let currentServerFilter = 'all';
+    let allShiftsData = [];
 
-    document.getElementById('todayDate').textContent = new Date().toISOString().split('T')[0];
-    const yDay = new Date(); yDay.setDate(yDay.getDate() - 1);
-    document.getElementById('yesterdayDate').textContent = yDay.toISOString().split('T')[0];
+    const todayStr = new Date().toISOString().split('T')[0];
+    const yDayObj = new Date(); yDayObj.setDate(yDayObj.getDate() - 1);
+    const yesterdayStr = yDayObj.toISOString().split('T')[0];
 
-    // Ініціалізація даних профілю
+    document.getElementById('todayDate').textContent = todayStr;
+    document.getElementById('yesterdayDate').textContent = yesterdayStr;
+
+    // Ініціалізація профілю
     if (currentUser) {
       document.getElementById('userNick').textContent = currentUser.nick || 'Модератор';
-      
       const roleElem = document.getElementById('userRole');
       const rawRole = (currentUser.role || 'S.M').toUpperCase();
       roleElem.textContent = currentUser.role || 'S.M';
@@ -391,20 +216,40 @@
       else if (rawRole.includes('КТП')) roleElem.classList.add('role-ktp');
       else roleElem.classList.add('role-sm');
 
-      document.getElementById('userServerContainer').innerHTML = getServerLogoHTML(currentUser.server || '05');
-      loadRecentShifts();
-      renderLeaderboard();
+      document.getElementById('userServerContainer').innerHTML = getServerLogoHTML(currentUser.server);
+    }
+
+    // Завантаження даних із бази при старті
+    async function initData() {
+      await fetchShifts();
+      setupRealtimeSubscription();
+    }
+
+    async function fetchShifts() {
+      const { data, error } = await dbClient.from('shifts').select('*, profiles(nick, server, role)');
+      if (!error && data) {
+        allShiftsData = data;
+        updateUIWithShifts();
+      }
+    }
+
+    // Реагування на події в реальному часі
+    function setupRealtimeSubscription() {
+      dbClient.channel('public:shifts')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'shifts' }, payload => {
+          fetchShifts();
+        })
+        .subscribe();
     }
 
     function switchTab(tab) {
       document.getElementById('mainSection').style.display = tab === 'main' ? 'block' : 'none';
       document.getElementById('leaderboardSection').style.display = tab === 'leaderboard' ? 'block' : 'none';
-
       document.getElementById('btnMain').classList.toggle('active', tab === 'main');
       document.getElementById('btnLeaderboard').classList.toggle('active', tab === 'leaderboard');
     }
 
-    function toggleShift() {
+    async function toggleShift() {
       const statusInd = document.getElementById('statusIndicator');
       const shiftBtn = document.getElementById('shiftBtn');
 
@@ -415,12 +260,11 @@
         statusInd.className = 'status-on';
         shiftBtn.textContent = 'Завершити зміну';
         shiftBtn.classList.add('active');
-
         shiftStartTime = new Date();
 
         timerInterval = setInterval(() => {
-          totalSeconds++;
-          document.getElementById('todayTimer').textContent = formatTime(totalSeconds);
+          totalSecondsToday++;
+          document.getElementById('todayTimer').textContent = formatTime(totalSecondsToday);
         }, 1000);
 
       } else {
@@ -428,13 +272,25 @@
         statusInd.className = 'status-off';
         shiftBtn.textContent = 'Почати зміну';
         shiftBtn.classList.remove('active');
-
         clearInterval(timerInterval);
 
-        if (totalSeconds > 0) {
-          saveShift(shiftStartTime, new Date(), totalSeconds);
+        if (totalSecondsToday > 0) {
+          await saveShiftToDB(shiftStartTime, new Date(), totalSecondsToday);
         }
       }
+    }
+
+    async function saveShiftToDB(start, end, durationSec) {
+      const shiftRecord = {
+        user_id: currentUser.id,
+        date: todayStr,
+        start_time: start.toTimeString().split(' ')[0],
+        end_time: end.toTimeString().split(' ')[0],
+        duration_seconds: durationSec
+      };
+
+      await dbClient.from('shifts').insert([shiftRecord]);
+      await fetchShifts();
     }
 
     function formatTime(sec) {
@@ -444,52 +300,39 @@
       return `${hrs}:${mins}:${secs}`;
     }
 
-    function getUserStorageKey() {
-      if (!currentUser) return null;
-      return `user_shifts_${currentUser.account_number || currentUser.id}`;
-    }
-
-    function saveShift(start, end, durationSec) {
-      const key = getUserStorageKey();
-      if (!key) return;
-
-      const shifts = JSON.parse(localStorage.getItem(key) || '[]');
+    function updateUIWithShifts() {
+      // 1. Оновлення списку особистих змін та таймерів
+      const myShifts = allShiftsData.filter(s => s.user_id === currentUser.id);
       
-      const newShift = {
-        date: start.toLocaleDateString('uk-UA'),
-        startTime: start.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }),
-        endTime: end.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' }),
-        duration: formatTime(durationSec)
-      };
+      let todaySecs = 0;
+      let yesterdaySecs = 0;
+      let recentListHTML = '';
 
-      shifts.unshift(newShift);
-      localStorage.setItem(key, JSON.stringify(shifts));
-      loadRecentShifts();
-    }
+      myShifts.sort((a, b) => new Date(b.created_at || b.date) - new Date(a.created_at || a.date));
 
-    function loadRecentShifts() {
-      const container = document.getElementById('shiftsList');
-      const key = getUserStorageKey();
-      if (!key) {
-        container.innerHTML = `<div style="color: #6e7681; font-size: 13px;">Немає завершених змін.</div>`;
-        return;
-      }
+      myShifts.forEach(s => {
+        if (s.date === todayStr) todaySecs += s.duration_seconds;
+        if (s.date === yesterdayStr) yesterdaySecs += s.duration_seconds;
 
-      const shifts = JSON.parse(localStorage.getItem(key) || '[]');
-      if (shifts.length === 0) {
-        container.innerHTML = `<div style="color: #6e7681; font-size: 13px;">Немає завершених змін.</div>`;
-        return;
-      }
-
-      container.innerHTML = shifts.map(s => `
-        <div class="shift-item">
-          <div>
-            <strong>Зміна (${s.date})</strong>
-            <div class="shift-time">${s.startTime} — ${s.endTime}</div>
+        recentListHTML += `
+          <div class="shift-item">
+            <div>
+              <strong>Зміна (${s.date})</strong>
+              <div class="shift-time">${s.start_time || '00:00'} — ${s.end_time || '00:00'}</div>
+            </div>
+            <div class="shift-duration">+ ${formatTime(s.duration_seconds)}</div>
           </div>
-          <div class="shift-duration">+ ${s.duration}</div>
-        </div>
-      `).join('');
+        `;
+      });
+
+      if (!isOnShift) {
+        totalSecondsToday = todaySecs;
+        document.getElementById('todayTimer').textContent = formatTime(todaySecs);
+      }
+      document.getElementById('yesterdayTimer').textContent = formatTime(yesterdaySecs);
+      document.getElementById('shiftsList').innerHTML = recentListHTML || `<div style="color: #6e7681; font-size: 13px;">Немає завершених змін.</div>`;
+
+      renderLeaderboard();
     }
 
     function setPeriod(index, period) {
@@ -508,14 +351,56 @@
 
     function renderLeaderboard() {
       const tbody = document.getElementById('lbTableBody');
-      let list = [...mockLeaderboard];
+      const now = new Date();
+      const currentMonth = now.toISOString().slice(0, 7); // формат "YYYY-MM"
+      const currentWeekNum = getWeekNumber(now);
 
-      if (currentServerFilter === 'my' && currentUser) {
+      // Групуємо зміни по користувачах відповідно до обраного періоду
+      const statsMap = {};
+
+      allShiftsData.forEach(shift => {
+        if (!shift.profiles) return;
+        
+        const shiftDate = new Date(shift.date);
+        const shiftMonth = shift.date.slice(0, 7);
+        const shiftWeekNum = getWeekNumber(shiftDate);
+
+        let include = false;
+        if (currentPeriod === 'day' && shift.date === todayStr) include = true;
+        if (currentPeriod === 'week' && shiftWeekNum === currentWeekNum && shiftDate.getFullYear() === now.getFullYear()) include = true;
+        
+        // ПЕРШЕ ЧИСЛО МІСЯЦЯ: фільтруємо виключно поточний місяць. 
+        // Як тільки настає 1-ше число, shiftMonth змінюється, старі дані місяця не потрапляють сюди автоматично.
+        if (currentPeriod === 'month' && shiftMonth === currentMonth) include = true;
+
+        if (include) {
+          const uid = shift.user_id;
+          if (!statsMap[uid]) {
+            statsMap[uid] = {
+              nick: shift.profiles.nick,
+              server: shift.profiles.server,
+              totalSec: 0
+            };
+          }
+          statsMap[uid].totalSec += shift.duration_seconds;
+        }
+      });
+
+      let lbArray = Object.values(statsMap);
+
+      if (currentServerFilter === 'my') {
         const userSrv = String(currentUser.server || '05').padStart(2, '0');
-        list = list.filter(item => item.server === userSrv);
+        lbArray = lbArray.filter(item => String(item.server).padStart(2, '0') === userSrv);
       }
 
-      tbody.innerHTML = list.map((item, index) => {
+      lbArray.sort((a, b) => b.totalSec - a.totalSec);
+
+      if (lbArray.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #6e7681;">Немає даних за цей період</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = lbArray.map((item, index) => {
         let rankSymbol = index + 1;
         if (index === 0) rankSymbol = '🥇';
         else if (index === 1) rankSymbol = '🥈';
@@ -526,10 +411,18 @@
             <td><span class="rank-badge">${rankSymbol}</span></td>
             <td><strong>${item.nick}</strong></td>
             <td>${getServerLogoHTML(item.server)}</td>
-            <td style="font-family: monospace; font-weight: 600;">${item[currentPeriod]}</td>
+            <td style="font-family: monospace; font-weight: 600;">${formatTime(item.totalSec)}</td>
           </tr>
         `;
       }).join('');
+    }
+
+    function getWeekNumber(d) {
+      d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.DATE || d.getDate()));
+      d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay()||7));
+      var yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+      var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+      return weekNo;
     }
 
     document.getElementById('profileBtn').addEventListener('click', (e) => {
@@ -545,6 +438,9 @@
       localStorage.removeItem('ugta_current_user');
       window.location.href = 'login.html';
     }
+
+    // Запуск підвантаження даних
+    initData();
   </script>
 </body>
 </html>
