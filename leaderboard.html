@@ -83,26 +83,26 @@
           </tr>
         </thead>
         <tbody id="leaderboardBody">
-          <!-- Дані завантажуються динамічно -->
+          <tr><td colspan="4" class="empty-row">Завантаження даних...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- Підключаємо загальний файл даних -->
-  <script src="data.js"></script>
-  <script>
+  <script type="module">
+    import { getAllShifts, getRoleColor } from './data.js';
+
     let currentPeriod = 'today';
 
-    function setPeriod(period, event) {
+    window.setPeriod = function(period, event) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
       currentPeriod = period;
       renderLeaderboard();
     }
 
-    function renderLeaderboard() {
-      const data = getAllShifts();
+    window.renderLeaderboard = async function() {
+      const data = await getAllShifts();
       const selectedServer = document.getElementById('serverFilter').value;
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
@@ -112,14 +112,12 @@
       data.forEach(shift => {
         if (!shift.nick) return;
 
-        // Фільтр по серверу
         if (selectedServer !== 'all') {
           const shiftServerClean = String(shift.server || '').replace(/^0+/, '');
           const selectedClean = String(selectedServer).replace(/^0+/, '');
           if (shiftServerClean !== selectedClean) return;
         }
 
-        // Фільтр по періоду
         const shiftDate = new Date(shift.date);
         let match = false;
         if (currentPeriod === 'today') {
