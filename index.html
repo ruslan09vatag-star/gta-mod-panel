@@ -252,7 +252,7 @@
             role: role,
             date: todayStr,
             duration_seconds: durationSec,
-            created_at: new Date().toISOString() // Зберігаємо точний час завершення зміни
+            created_at: new Date().toISOString()
           });
           isSaved = true;
         } catch (error) {
@@ -276,13 +276,12 @@
       const allData = await getAllShifts();
       const shifts = allData.filter(s => s.nick && s.nick.toLowerCase() === nick.toLowerCase());
       
-      // Залізобетонне сортування за часом створення (від найновіших до найстаріших) за допомогою `created_at` або `id`
       shifts.sort((a, b) => {
         const timeA = a.created_at ? new Date(a.created_at).getTime() : (a.id || 0);
         const timeB = b.created_at ? new Date(b.created_at).getTime() : (b.id || 0);
         
         if (timeA !== timeB) {
-          return timeB - timeA; // Новіші (більший час/ID) будуть зверху
+          return timeB - timeA;
         }
         return (b.id || 0) - (a.id || 0);
       });
@@ -296,7 +295,6 @@
           const m = Math.floor((shift.duration_seconds % 3600) / 60);
           const s = shift.duration_seconds % 60;
           
-          // Форматування точного часу завершення (якщо є в базі)
           let timeFormatted = '';
           if (shift.created_at) {
             const shiftDateObj = new Date(shift.created_at);
@@ -361,10 +359,11 @@
         }
 
         if (newPassword) {
+          // Шукаємо профіль у базі за нікнеймом замість номера акаунта
           const { error } = await dbClient
             .from('profiles')
             .update({ password: newPassword })
-            .eq('account_number', currentUser.account_number);
+            .eq('nick', nick);
 
           if (error) {
             alert('Помилка при збереженні пароля в базі!');
