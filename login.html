@@ -3,56 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Вхід — UGTA Panel</title>
+  <title>Вхід — UGTA Moderation Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { background: #0b0e14; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif; margin: 0; }
-    .box { background: #121721; padding: 30px; border-radius: 12px; width: 320px; border: 1px solid #1e2638; }
-    h2 { margin-bottom: 20px; text-align: center; }
-    input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0e14; border: 1px solid #1e2638; color: #fff; border-radius: 6px; box-sizing: border-box; }
-    .check-container { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #8b949e; cursor: pointer; margin-bottom: 10px; }
-    button { width: 100%; padding: 12px; background: #1f6feb; border: none; color: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; }
-    button:hover { background: #388bfd; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: #0b0e14; color: #c9d1d9; min-height: 100vh; display: flex; justify-content: center; align-items: center; }
+    .auth-card { background: #121721; border: 1px solid #1e2638; border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6); }
+    .auth-header { text-align: center; margin-bottom: 30px; }
+    .auth-header h1 { color: #ffffff; font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .auth-header p { color: #8b949e; font-size: 14px; }
+    .input-group { margin-bottom: 20px; }
+    .input-group label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 500; color: #8b949e; }
+    .input-group input { width: 100%; padding: 12px 16px; background-color: #0b0e14; border: 1px solid #1e2638; border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: 0.2s; }
+    .input-group input:focus { border-color: #1f6feb; }
+    
+    .checkbox-container { display: flex; align-items: center; gap: 10px; margin-bottom: 24px; font-size: 14px; color: #c9d1d9; cursor: pointer; user-select: none; }
+    .checkbox-container input { width: 18px; height: 18px; accent-color: #1f6feb; cursor: pointer; border-radius: 4px; }
+
+    .login-btn { width: 100%; padding: 12px; background-color: #1f6feb; border: none; border-radius: 8px; color: #ffffff; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+    .login-btn:hover { background-color: #388bfd; }
+    
+    #errorMessage { color: #f85149; font-size: 13px; text-align: center; margin-top: 16px; display: none; }
   </style>
 </head>
 <body>
 
-  <div class="box">
-    <h2>Вхід</h2>
-    <input type="text" id="acc" placeholder="Номер акаунта">
-    <input type="password" id="pass" placeholder="Пароль">
-    
-    <label class="check-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h1>Авторизація</h1>
+      <p>UGTA Moderation Panel</p>
+    </div>
+
+    <div class="input-group">
+      <label for="acc">Номер акаунта</label>
+      <input type="text" id="acc" placeholder="Введіть номер акаунта">
+    </div>
+
+    <div class="input-group">
+      <label for="pass">Пароль</label>
+      <input type="password" id="pass" placeholder="Введіть пароль">
+    </div>
+
+    <label class="checkbox-container">
       <input type="checkbox" id="rememberMe"> Запам'ятати мене
     </label>
 
-    <button onclick="handleLogin()">Увійти</button>
+    <button class="login-btn" onclick="handleLogin()">Увійти</button>
+    <div id="errorMessage"></div>
   </div>
 
   <script>
     const dbClient = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
 
-    // Перевірка при завантаженні (якщо "запам'ятали")
-    window.onload = () => {
+    window.addEventListener('DOMContentLoaded', () => {
       if (localStorage.getItem('ugta_remember_me') === 'true' && localStorage.getItem('ugta_current_user')) {
         window.location.href = 'index.html';
       }
-    };
+    });
 
     async function handleLogin() {
-      const acc = document.getElementById('acc').value;
-      const pass = document.getElementById('pass').value;
+      const acc = document.getElementById('acc').value.trim();
+      const pass = document.getElementById('pass').value.trim();
       const remember = document.getElementById('rememberMe').checked;
+      const errDiv = document.getElementById('errorMessage');
 
-      const { data: user } = await dbClient.from('profiles').select('*').eq('account_number', acc).eq('password', pass).maybeSingle();
-
-      if (user) {
-        localStorage.setItem('ugta_current_user', JSON.stringify(user));
-        localStorage.setItem('ugta_remember_me', remember ? 'true' : 'false');
-        window.location.href = 'index.html';
-      } else {
-        alert('Невірні дані!');
+      if (!acc || !pass) {
+        errDiv.textContent = '❌ Заповніть усі поля!';
+        errDiv.style.display = 'block';
+        return;
       }
+
+      const { data: user, error } = await dbClient.from('profiles').select('*').eq('account_number', acc).eq('password', pass).maybeSingle();
+
+      if (error || !user) {
+        errDiv.textContent = '❌ Невірний номер акаунта або пароль!';
+        errDiv.style.display = 'block';
+        return;
+      }
+
+      localStorage.setItem('ugta_current_user', JSON.stringify(user));
+      localStorage.setItem('ugta_remember_me', remember ? 'true' : 'false');
+      window.location.href = 'index.html';
     }
   </script>
 </body>
