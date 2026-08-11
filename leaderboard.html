@@ -15,19 +15,23 @@
 
     h1 { color: #fff; margin-bottom: 20px; font-size: 26px; font-weight: 700; }
 
-    /* Таби періодів з анімацією */
-    .tabs { display: flex; gap: 10px; margin-bottom: 30px; }
-    .tab-btn { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 10px 20px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; font-size: 14px; }
-    .tab-btn:hover { background: #1f293d; color: #fff; transform: translateY(-2px); }
-    .tab-btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; box-shadow: 0 4px 15px rgba(31,111,235,0.3); transform: translateY(-2px); }
+    .controls-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
 
-    /* Таблиця */
+    .tabs { display: flex; gap: 10px; }
+    .tab-btn { background: #161b22; border: 1px solid #30363d; color: #8b949e; padding: 10px 16px; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; font-size: 14px; }
+    .tab-btn:hover { background: #1f293d; color: #fff; }
+    .tab-btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; box-shadow: 0 4px 15px rgba(31,111,235,0.3); }
+
+    .server-select { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; outline: none; }
+    .server-select:focus { border-color: #1f6feb; }
+
     .table { width: 100%; border-collapse: collapse; background: #121721; border-radius: 12px; overflow: hidden; border: 1px solid #1e2638; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     .table th, .table td { padding: 16px 20px; text-align: left; border-bottom: 1px solid #1e2638; font-size: 14px; }
     .table th { color: #8b949e; font-size: 13px; font-weight: 600; background: #161b22; }
     .rank-cell { font-weight: 700; color: #58a6ff; width: 60px; }
     .time-cell { font-family: monospace; font-weight: 600; color: #3fb950; font-size: 15px; }
     .server-badge { background: #1f293d; color: #58a6ff; padding: 2px 8px; border-radius: 6px; border: 1px solid #30363d; font-size: 12px; font-weight: 500; }
+    .role-badge { color: #8b949e; font-size: 12px; display: block; margin-top: 2px; }
     .empty-row { text-align: center; color: #8b949e; padding: 30px !important; }
   </style>
 </head>
@@ -37,10 +41,20 @@
     <a href="index.html" class="back-link">← Повернутися до панелі</a>
     <h1>Лідерборд модераторів</h1>
 
-    <div class="tabs">
-      <button class="tab-btn active" onclick="loadLeaderboard('today', event)">Сьогодні</button>
-      <button class="tab-btn" onclick="loadLeaderboard('week', event)">Тиждень</button>
-      <button class="tab-btn" onclick="loadLeaderboard('month', event)">Місяць</button>
+    <div class="controls-container">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="setPeriod('today', event)">Сьогодні</button>
+        <button class="tab-btn" onclick="setPeriod('week', event)">Тиждень</button>
+        <button class="tab-btn" onclick="setPeriod('month', event)">Місяць</button>
+      </div>
+
+      <select id="serverFilter" class="server-select" onchange="renderLeaderboard()">
+        <option value="all">🌐 З усіх серверів</option>
+        <option value="01">Сервер 01</option>
+        <option value="02">Сервер 02</option>
+        <option value="03">Сервер 03</option>
+        <option value="04">Сервер 04</option>
+      </select>
     </div>
 
     <table class="table">
@@ -59,45 +73,50 @@
   </div>
 
   <script>
-    function loadLeaderboard(period, event) {
+    let currentPeriod = 'today';
+
+    function setPeriod(period, event) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       event.target.classList.add('active');
+      currentPeriod = period;
+      renderLeaderboard();
+    }
 
+    function renderLeaderboard() {
       const data = JSON.parse(localStorage.getItem('ugta_all_shifts_data') || '[]');
+      const selectedServer = document.getElementById('serverFilter').value;
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
 
-      // Групуємо час за ніками та серверами
       const stats = {};
 
-      data.forEach(shift => {
+      data.filter(shift => {
+        // Фільтр по серверу
+        if (selectedServer !== 'all' && shift.server !== selectedServer) return false;
+
+        // Фільтр по періоду
         const shiftDate = new Date(shift.date);
-        let match = false;
-
-        if (period === 'today') {
-          match = (shift.date === todayStr);
-        } else if (period === 'week') {
+        if (currentPeriod === 'today') {
+          return shift.date === todayStr;
+        } else if (currentPeriod === 'week') {
           const diffDays = (now - shiftDate) / (1000 * 60 * 60 * 24);
-          match = (diffDays >= 0 && diffDays <= 7);
-        } else if (period === 'month') {
-          match = (shiftDate.getMonth() === now.getMonth() && shiftDate.getFullYear() === now.getFullYear());
+          return (diffDays >= 0 && diffDays <= 7);
+        } else if (currentPeriod === 'month') {
+          return (shiftDate.getMonth() === now.getMonth() && shiftDate.getFullYear() === now.getFullYear());
         }
-
-        if (match) {
-          if (!stats[shift.nick]) {
-            stats[shift.nick] = { time: 0, server: shift.server };
-          }
-          stats[shift.nick].time += shift.duration_seconds;
+        return true;
+      }).forEach(shift => {
+        if (!stats[shift.nick]) {
+          stats[shift.nick] = { time: 0, server: shift.server, role: shift.role || 'Модератор' };
         }
+        stats[shift.nick].time += shift.duration_seconds;
       });
 
-      // Сортуємо учасників за кількістю часу (від найбільшого до найменшого)
       const sortedUsers = Object.keys(stats).sort((a, b) => stats[b].time - stats[a].time);
-
       const tbody = document.getElementById('leaderboardBody');
 
       if (sortedUsers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="empty-row">За цей період ще немає даних про завершені зміни.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="empty-row">За вибраний період немає завершених змін.</td></tr>`;
         return;
       }
 
@@ -112,7 +131,10 @@
         return `
           <tr>
             <td class="rank-cell">#${index + 1}</td>
-            <td><b>${nick}</b></td>
+            <td>
+              <b>${nick}</b>
+              <span class="role-badge">${userStats.role}</span>
+            </td>
             <td><span class="server-badge">Сервер ${userStats.server}</span></td>
             <td class="time-cell">${timeFormatted}</td>
           </tr>
@@ -120,8 +142,8 @@
       }).join('');
     }
 
-    // Завантажуємо таблицю для вкладки "Сьогодні" під час відкриття сторінки
-    loadLeaderboard('today', { target: document.querySelector('.tab-btn') });
+    // Первинне завантаження
+    renderLeaderboard();
   </script>
 </body>
 </html>
