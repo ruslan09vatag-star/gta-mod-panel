@@ -54,6 +54,7 @@
 <body>
 
   <div class="main-container">
+    <!-- Навігація з робочими посиланнями -->
     <div class="nav-links">
       <a href="index.html" class="nav-link">Панель модератора</a>
       <a href="admin.html" class="nav-link active">Панель керівництва</a>
@@ -172,7 +173,6 @@
         document.getElementById('avgShiftTime').innerText = `${avgH}:${String(avgM).padStart(2, '0')}`;
       }
 
-      // Виправляємо фільтр: беремо тільки ті записи, у яких чітко вказано статус 'Online'
       const activeShifts = shifts.filter(shift => shift.status === 'Online');
       document.getElementById('onlineCount').innerText = activeShifts.length;
 
