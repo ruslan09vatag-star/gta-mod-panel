@@ -2,291 +2,41 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Панель Модерації UKRAINE GTA</title>
+  <title>Авторизація</title>
+  <!-- Підключення Supabase JS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    body {
-      background-color: #0f172a;
-      color: #ffffff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      margin: 0;
-    }
-    .auth-card, .dashboard-card {
-      background: #1e293b;
-      padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      width: 350px;
-      text-align: center;
-    }
-    .input-group { margin-bottom: 15px; text-align: left; }
-    .input-group label { display: block; font-size: 12px; margin-bottom: 5px; color: #94a3b8; }
-    .input-group input, .input-group select {
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid #334155;
-      background: #0f172a;
-      color: #fff;
-      box-sizing: border-box;
-    }
-    .btn-primary {
-      width: 100%;
-      padding: 12px;
-      background: #3b82f6;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    .btn-primary:hover { background: #2563eb; }
-    .toggle-text {
-      margin-top: 15px;
-      font-size: 13px;
-      color: #94a3b8;
-    }
-    .toggle-text span {
-      color: #3b82f6;
-      cursor: pointer;
-      text-decoration: underline;
-      font-weight: bold;
-    }
-    .btn-danger {
-      background: #ef4444;
-      border: none;
-      padding: 10px;
-      color: white;
-      border-radius: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 15px;
-    }
-    .btn-danger:hover { background: #dc2626; }
-    
-    .register-only { display: none; }
-    #main-panel { display: none; }
-  </style>
 </head>
 <body>
 
-  <!-- Форма Входу / Реєстрації -->
-  <div class="auth-card" id="auth-card">
-    <h2 id="form-title">Авторизація</h2>
-    
-    <div class="input-group">
-      <label>Email</label>
-      <input type="email" id="email" placeholder="admin@ukraine-gta.ua">
-    </div>
+  <div class="auth-card">
+    <h2>Авторизація</h2>
 
-    <div class="input-group">
-      <label>Пароль</label>
-      <input type="password" id="password" placeholder="••••••••">
-    </div>
+    <form id="loginForm">
+      <div class="input-group">
+        <label for="accountNumber">Номер акаунта</label>
+        <input 
+          type="text" 
+          id="accountNumber" 
+          placeholder="Введіть номер акаунта" 
+          required 
+        />
+      </div>
 
-    <!-- Поля тільки для реєстрації -->
-    <div class="input-group register-only">
-      <label>Ігровий Нікнейм</label>
-      <input type="text" id="nick" placeholder="Руслан Мандарин">
-    </div>
+      <div class="input-group">
+        <label for="password">Пароль</label>
+        <input 
+          type="password" 
+          id="password" 
+          placeholder="Введіть пароль" 
+          required 
+        />
+      </div>
 
-    <div class="input-group register-only">
-      <label>Сервер</label>
-      <select id="server">
-        <option value="01 Сервер">01 Сервер</option>
-        <option value="02 Сервер" selected>02 Сервер</option>
-        <option value="03 Сервер">03 Сервер</option>
-        <option value="04 Сервер">04 Сервер</option>
-        <option value="05 Сервер">05 Сервер</option>
-        <option value="06 Сервер">06 Сервер</option>
-      </select>
-    </div>
-
-    <button class="btn-primary" id="submit-btn" onclick="handleAuth()">Увійти</button>
-
-    <div class="toggle-text" id="toggle-box">
-      Якщо у вас немає акаунта, <span onclick="toggleMode(true)">створіть його</span>
-    </div>
+      <button type="submit" id="loginBtn">Увійти</button>
+    </form>
   </div>
 
-  <!-- Панель Модератора -->
-  <div class="dashboard-card" id="main-panel">
-    <h2>Панель Модератора</h2>
-    <p>Вітаємо в системі, <b id="user-nick">Модератор</b>!</p>
-    <hr style="border-color: #334155; margin: 20px 0;">
-    <p style="color: #94a3b8; font-size: 14px;">Тут будуть розташовані твої робочі інструменти.</p>
-    <button class="btn-danger" onclick="logout()">Вийти з акаунта</button>
-  </div>
-
-  <script>
-    const SUPABASE_URL = 'https://zhvhkbchztcqorocbngv.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35';
-    const BOT_TOKEN = '8997988532:AAG6DFjrVDzkwZ7EX4gY_QGtEuUcAo9VNTc';
-    const ADMIN_CHAT_ID = '1841122025';
-
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    let isRegisterMode = false;
-
-    function toggleMode(register) {
-      isRegisterMode = register;
-      const regFields = document.querySelectorAll('.register-only');
-      const title = document.getElementById('form-title');
-      const btn = document.getElementById('submit-btn');
-      const toggleBox = document.getElementById('toggle-box');
-
-      if (isRegisterMode) {
-        regFields.forEach(el => el.style.display = 'block');
-        title.innerText = 'Реєстрація';
-        btn.innerText = 'Зареєструватися';
-        toggleBox.innerHTML = 'Вже є акаунт? <span onclick="toggleMode(false)">Увійти</span>';
-      } else {
-        regFields.forEach(el => el.style.display = 'none');
-        title.innerText = 'Авторизація';
-        btn.innerText = 'Увійти';
-        toggleBox.innerHTML = 'Якщо у вас немає акаунта, <span onclick="toggleMode(true)">створіть його</span>';
-      }
-    }
-
-    async function handleAuth() {
-      const btn = document.getElementById('submit-btn');
-      btn.disabled = true;
-
-      try {
-        if (isRegisterMode) {
-          await register();
-        } else {
-          await login();
-        }
-      } finally {
-        btn.disabled = false;
-      }
-    }
-
-    // 1. РЕЄСТРАЦІЯ: Надсилаємо заявку в ТГ ТІЛЬКИ ТУТ
-    async function register() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-      const nick = document.getElementById('nick').value.trim();
-      const server = document.getElementById('server').value;
-
-      if (!email || !password || !nick) {
-        alert("Заповни всі поля!");
-        return;
-      }
-
-      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-      if (!emailRegex.test(email)) {
-        alert("❌ Введіть коректну електронну пошту!");
-        return;
-      }
-
-      const { data, error } = await supabaseClient.auth.signUp({ email, password });
-
-      if (error) {
-        alert("Помилка реєстрації: " + error.message);
-        return;
-      }
-
-      const userId = data.user.id;
-
-      // Запис у базу Supabase
-      const { error: dbError } = await supabaseClient.from('profiles').insert([
-        { id: userId, nick: nick, server: server, email: email, status: 'pending' }
-      ]);
-
-      if (dbError) {
-        alert("Помилка зберігання профілю: " + dbError.message);
-        return;
-      }
-
-      // Відправляємо 1 раз у Telegram
-      const text = `📩 <b>Нова заявка на доступ!</b>\n\n` +
-                   `👤 <b>Нік:</b> ${nick}\n` +
-                   `🌐 <b>Сервер:</b> ${server}\n` +
-                   `📧 <b>Email:</b> ${email}\n` +
-                   `🆔 <b>ID:</b> <code>${userId}</code>`;
-
-      const inlineKeyboard = {
-        inline_keyboard: [
-          [
-            { text: "✅ Схвалити", callback_data: `approve_${userId}` },
-            { text: "❌ Відхилити", callback_data: `reject_${userId}` }
-          ]
-        ]
-      };
-
-      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: ADMIN_CHAT_ID,
-          text: text,
-          parse_mode: 'HTML',
-          reply_markup: inlineKeyboard
-        })
-      });
-
-      alert("📧 Реєстрація успішна! Перевірте пошту для підтвердження, після чого очікуйте схвалення.");
-      toggleMode(false);
-    }
-
-    // 2. ВХІД: ЖОДНИХ ЗАПИТІВ ДО TELEGRAM
-    async function login() {
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value.trim();
-
-      if (!email || !password) {
-        alert("Введи email та пароль!");
-        return;
-      }
-
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        alert("Невірний email або пароль!");
-        return;
-      }
-
-      // Перевіряємо підтвердження пошти
-      if (!data.user.email_confirmed_at) {
-        alert("❌ Ваша пошта ще не підтверджена! Перевірте поштову скриньку.");
-        await supabaseClient.auth.signOut();
-        return;
-      }
-
-      // Отримуємо статус з Supabase
-      const { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-
-      if (!profile || profile.status === 'pending') {
-        alert("⏳ Ваша пошта підтверджена, але заявка ще очікує схвалення адміністратора в Telegram!");
-        await supabaseClient.auth.signOut();
-      } else if (profile.status === 'rejected') {
-        alert("❌ Твоєї заявці відмовлено в доступі!");
-        await supabaseClient.auth.signOut();
-      } else if (profile.status === 'approved') {
-        document.getElementById('auth-card').style.display = 'none';
-        document.getElementById('main-panel').style.display = 'block';
-        document.getElementById('user-nick').innerText = profile.nick || 'Модератор';
-      }
-    }
-
-    async function logout() {
-      try { await supabaseClient.auth.signOut(); } catch (err) {}
-      document.getElementById('main-panel').style.display = 'none';
-      document.getElementById('auth-card').style.display = 'block';
-      document.getElementById('password').value = '';
-    }
-  </script>
+  <!-- Підключаємо ваш JS файл -->
+  <script src="script.js"></script>
 </body>
 </html>
