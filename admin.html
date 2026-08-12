@@ -57,7 +57,6 @@
 <body>
 
   <div class="main-container">
-    <!-- Шапка -->
     <div class="top-header">
       <div class="header-title">Панель керівництва</div>
       <div class="header-actions">
@@ -68,7 +67,6 @@
       </div>
     </div>
 
-    <!-- Блоки статистики -->
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-card-top">Всього користувачів <span>👥</span></div>
@@ -92,7 +90,6 @@
       </div>
     </div>
 
-    <!-- Таблиця онлайн користувачів -->
     <div class="table-container-card">
       <div class="table-header-row">
         <div class="table-title">Користувачі онлайн</div>
@@ -131,15 +128,6 @@
       window.location.href = 'login.html';
     }
 
-    const userRole = (currentUser.role || currentUser.status || '').toLowerCase();
-    const allowedRoles = ['адміністратор', 'властитель', 'засновник', 'куратор', 'керівник', 'адмін', 'старший модератор'];
-    
-    const hasAccess = allowedRoles.some(r => userRole.includes(r));
-    if (!hasAccess && userRole === 'модератор') {
-      alert('Доступ заборонено! Ця сторінка лише для керівництва.');
-      window.location.href = 'index.html';
-    }
-
     const now = new Date();
     document.getElementById('currentDateBadge').textContent = `📅 ${now.toLocaleDateString('uk-UA')}`;
 
@@ -147,8 +135,9 @@
       try {
         const allShifts = await getAllShifts();
         
+        // Отримуємо профілі з бази Supabase
         const { data: profiles } = await dbClient.from('profiles').select('*');
-        const totalUsers = profiles ? profiles.length : new Set(allShifts.map(s => s.nick)).size;
+        const totalUsers = profiles ? profiles.length : 0;
         document.getElementById('totalUsersCount').textContent = totalUsers;
         document.getElementById('totalShiftsCount').textContent = allShifts.length;
 
@@ -161,11 +150,15 @@
         }
 
         let onlineList = [];
+
+        // Перевіряємо профіль кожного користувача з бази на наявність активної зміни
         if (profiles) {
           profiles.forEach(p => {
             const nick = p.nick || p.name;
-            const isOnDuty = localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
-            const startTime = parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
+            // Перевіряємо як у localStorage (якщо на цьому ж ПК), так і загальний стан або активність
+            const isOnDuty = localStorage.getItem('ugta_is_on_duty_' + nick) === 'true' || p.is_on_duty === true;
+            const startTime = parseInt(localStorage.getItem('ugta_shift_start_' + nick) || p.shift_start || '0');
+            
             if (isOnDuty && startTime > 0) {
               onlineList.push({
                 nick: nick,
@@ -177,6 +170,7 @@
           });
         }
 
+        // Також додаємо поточного користувача примусово, якщо він зараз на зміні
         const currentNick = currentUser.nick || currentUser.name;
         const currentIsOnDuty = localStorage.getItem('ugta_is_on_duty_' + currentNick) === 'true';
         const currentStartTime = parseInt(localStorage.getItem('ugta_shift_start_' + currentNick) || '0');
@@ -242,7 +236,7 @@
     }
 
     loadManagementData();
-    setInterval(loadManagementData, 10000);
+    setInterval(loadManagementData, 5000); // Оновлювати кожні 5 секунд
   </script>
 </body>
 </html>
