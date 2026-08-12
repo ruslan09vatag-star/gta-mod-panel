@@ -1,117 +1,12 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Панель керівництва — UGTA</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    body { background-color: #0b0e14; color: #c9d1d9; min-height: 100vh; padding: 15px; }
-    .main-container { max-width: 1200px; margin: 0 auto; }
-
-    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
-    .header-title { color: #fff; font-size: 26px; font-weight: 700; }
-    .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    
-    .date-badge { background: #121721; border: 1px solid #1e2638; padding: 8px 14px; border-radius: 8px; font-size: 13px; color: #c9d1d9; display: flex; align-items: center; gap: 8px; }
-    .back-btn { background: #21262d; border: 1px solid #30363d; border-radius: 8px; color: #c9d1d9; font-weight: 600; padding: 9px 16px; font-size: 13px; cursor: pointer; transition: 0.2s; text-decoration: none; display: flex; align-items: center; gap: 6px; }
-    .back-btn:hover { background: #30363d; color: #fff; }
-    .report-btn { background: #1f6feb; border: none; border-radius: 8px; color: #fff; font-weight: 600; padding: 9px 16px; font-size: 13px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
-    .report-btn:hover { background: #388bfd; }
-    .logout-btn { background: #da3633; border: none; border-radius: 8px; color: #fff; font-weight: 600; padding: 9px 16px; font-size: 13px; cursor: pointer; transition: 0.2s; }
-    .logout-btn:hover { background: #e5534b; }
-
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    .stat-card { background: #121721; border: 1px solid #1e2638; border-radius: 14px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 8px; }
-    .stat-card-top { display: flex; justify-content: space-between; align-items: center; color: #8b949e; font-size: 13px; }
-    .stat-value { color: #fff; font-size: 26px; font-weight: 700; font-family: monospace; }
-    .stat-sub { color: #8b949e; font-size: 11px; }
-
-    .table-container-card { background: #121721; border: 1px solid #1e2638; border-radius: 14px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-    .table-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .table-title { color: #fff; font-size: 16px; font-weight: 600; }
-    .table-subtitle { color: #8b949e; font-size: 12px; }
-
-    .table-wrapper { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
-    th { padding: 12px 10px; color: #8b949e; font-weight: 600; border-bottom: 1px solid #30363d; }
-    td { padding: 12px 10px; border-bottom: 1px solid #1e2638; color: #c9d1d9; }
-    
-    .user-cell { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 600; }
-    .user-avatar-sm { width: 32px; height: 32px; border-radius: 8px; background: #1f6feb; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; background-size: cover; background-position: center; flex-shrink: 0; }
-    .server-badge { background: #f0883e; color: #000; font-weight: 700; padding: 3px 8px; border-radius: 6px; font-size: 11px; display: inline-block; text-align: center; min-width: 28px; }
-    .status-online { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.4); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
-    .status-online::before { content: ''; width: 6px; height: 6px; background: #3fb950; border-radius: 50%; display: inline-block; }
-
-    @media(min-width: 768px) { body { padding: 30px; } }
-  </style>
-</head>
-<body>
-
-  <div class="main-container">
-    <div class="top-header">
-      <div class="header-title">Панель керівництва</div>
-      <div class="header-actions">
-        <div class="date-badge" id="currentDateBadge">📅 --.--.----</div>
-        <a href="index.html" class="back-btn">⬅️ На панель модератора</a>
-        <button class="report-btn" onclick="generateReport()">📋 Сформувати звіт</button>
-        <button class="logout-btn" onclick="logout()">Вийти</button>
-      </div>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-card-top">Всього змін у базі <span>📊</span></div>
-        <div class="stat-value" id="totalShiftsCount">0</div>
-        <div class="stat-sub">Записаних змін у Firebase</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-top">Зараз онлайн <span>🟢</span></div>
-        <div class="stat-value" id="onlineCount">0</div>
-        <div class="stat-sub">Активних модераторів</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-top">Середній час зміни <span>⏱️</span></div>
-        <div class="stat-value" id="avgShiftTime">0:00</div>
-        <div class="stat-sub">Годин на зміну в середньому</div>
-      </div>
-    </div>
-
-    <div class="table-container-card">
-      <div class="table-header-row">
-        <div class="table-title">Користувачі онлайн</div>
-        <div class="table-subtitle">Активні зміни в даний момент</div>
-      </div>
-
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Користувач</th>
-              <th>Сервер</th>
-              <th>Початок</th>
-              <th>Тривалість</th>
-              <th>Статус</th>
-            </tr>
-          </thead>
-          <tbody id="onlineUsersTableBody">
-            <tr><td colspan="5" style="text-align: center; color: #8b949e; padding: 20px;">Завантаження даних...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <script type="module">
-    import { getAllShifts } from './data.js';
+<script type="module">
+    import { subscribeToShifts, getRoleColor } from './data.js';
 
     let currentUser = JSON.parse(localStorage.getItem('ugta_current_user') || 'null');
     if (!currentUser) {
       window.location.href = 'login.html';
     }
 
-    // Сувора перевірка ролей
+    // Перевірка ролей керівництва
     const role = (currentUser.role || currentUser.status || '').toUpperCase();
     const privilegedRoles = ['S.M', 'ЗКТП', 'КТП', 'АДМІНІСТРАТОР', 'КУРАТОР', 'ЗАСНОВНИК', 'КЕРІВНИК', 'ГАЛ. АДМІНІСТРАТОР', 'ГОЛОВНИЙ АДМІНІСТРАТОР', 'СТАРШИЙ МОДЕРАТОР'];
     const hasAccess = privilegedRoles.some(r => role.includes(r));
@@ -124,88 +19,58 @@
     const now = new Date();
     document.getElementById('currentDateBadge').textContent = `📅 ${now.toLocaleDateString('uk-UA')}`;
 
-    async function loadAdminData() {
-      try {
-        const allShifts = await getAllShifts();
-        document.getElementById('totalShiftsCount').textContent = allShifts.length;
+    // Підписка в реальному часі на зміни з Firebase
+    subscribeToShifts((allShifts) => {
+      document.getElementById('totalShiftsCount').textContent = allShifts.length;
 
-        if (allShifts.length > 0) {
-          const totalSecs = allShifts.reduce((acc, s) => acc + (s.duration_seconds || 0), 0);
-          const avgSecs = Math.floor(totalSecs / allShifts.length);
-          const hrs = Math.floor(avgSecs / 3600);
-          const mins = Math.floor((avgSecs % 3600) / 60);
-          document.getElementById('avgShiftTime').textContent = `${hrs}:${String(mins).padStart(2, '0')}`;
-        }
-
-        // Скануємо весь localStorage браузера на наявність активних змін модераторів
-        let onlineList = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('ugta_is_on_duty_')) {
-            const nick = key.replace('ugta_is_on_duty_', '');
-            const isOnDuty = localStorage.getItem(key) === 'true';
-            const startTime = parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
-
-            if (isOnDuty && startTime > 0) {
-              onlineList.push({
-                nick: nick,
-                server: currentUser.nick === nick ? (currentUser.server || '02') : '02',
-                startTime: startTime,
-                avatar: localStorage.getItem('ugta_avatar_' + nick)
-              });
-            }
-          }
-        }
-
-        document.getElementById('onlineCount').textContent = onlineList.length;
-        const tableBody = document.getElementById('onlineUsersTableBody');
-
-        if (onlineList.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8b949e; padding: 20px;">Зараз немає активних модераторів на зміні.</td></tr>`;
-          return;
-        }
-
-        tableBody.innerHTML = onlineList.map(item => {
-          const startDt = new Date(item.startTime);
-          const timeStr = startDt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-          
-          const diffSecs = Math.max(0, Math.floor((Date.now() - item.startTime) / 1000));
-          const h = Math.floor(diffSecs / 3600);
-          const m = Math.floor((diffSecs % 3600) / 60);
-          const durationStr = `${h} год. ${m} хв.`;
-
-          const avatarStyle = item.avatar ? `background-image: url('${item.avatar}');` : '';
-          const avatarText = item.avatar ? '' : item.nick.charAt(0).toUpperCase();
-
-          return `
-            <tr>
-              <td>
-                <div class="user-cell">
-                  <div class="user-avatar-sm" style="${avatarStyle}">${avatarText}</div>
-                  ${item.nick}
-                </div>
-              </td>
-              <td><span class="server-badge">${item.server}</span></td>
-              <td>${timeStr}</td>
-              <td style="font-family: monospace; color: #58a6ff; font-weight: 600;">${durationStr}</td>
-              <td><span class="status-online">Online</span></td>
-            </tr>
-          `;
-        }).join('');
-
-      } catch (err) {
-        console.error("Помилка завантаження даних керівництва:", err);
+      // Середній час зміни
+      if (allShifts.length > 0) {
+        const totalSecs = allShifts.reduce((acc, s) => acc + (s.duration_seconds || 0), 0);
+        const avgSecs = Math.floor(totalSecs / allShifts.length);
+        const hrs = Math.floor(avgSecs / 3600);
+        const mins = Math.floor((avgSecs % 3600) / 60);
+        document.getElementById('avgShiftTime').textContent = `${hrs}:${String(mins).padStart(2, '0')}`;
       }
-    }
+
+      // Фільтруємо тих, хто зараз на зміні з Firebase (шляхом перевірки активних полів або статусів)
+      // Або якщо у вас зберігаються документи активних сесій. 
+      // Якщо у вас записується тільки завершена зміна через saveShift, то рядок "онлайн" треба писати в окрему колекцію "ugta_online".
+      // Але поки що для виправлення виведемо список останніх активних або тих, у кого статус active:
+      
+      const onlineList = allShifts.filter(s => s.status === 'active' || s.isOnDuty === true);
+
+      document.getElementById('onlineCount').textContent = onlineList.length;
+      const tableBody = document.getElementById('onlineUsersTableBody');
+
+      if (onlineList.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8b949e; padding: 20px;">Зараз немає активних модераторів на зміні.</td></tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = onlineList.map(item => {
+        const avatarStyle = item.avatar ? `background-image: url('${item.avatar}');` : '';
+        const avatarText = item.avatar ? '' : (item.nick || 'М').charAt(0).toUpperCase();
+
+        return `
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar-sm" style="${avatarStyle}">${avatarText}</div>
+                ${item.nick || 'Користувач'}
+              </div>
+            </td>
+            <td><span class="server-badge">${item.server || '02'}</span></td>
+            <td>${item.startTimeStr || '--:--'}</td>
+            <td style="font-family: monospace; color: #58a6ff; font-weight: 600;">Працює</td>
+            <td><span class="status-online">Online</span></td>
+          </tr>
+        `;
+      }).join('');
+    });
 
     window.generateReport = function() { alert("Звіт успішно сформовано!"); }
     window.logout = function() {
       localStorage.removeItem('ugta_current_user');
       window.location.href = 'login.html';
     }
-
-    loadAdminData();
-    setInterval(loadAdminData, 3000);
   </script>
-</body>
-</html>
