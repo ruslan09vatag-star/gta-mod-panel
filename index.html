@@ -10,21 +10,15 @@
     body { background-color: #0b0e14; color: #c9d1d9; min-height: 100vh; padding: 15px; }
     .main-container { max-width: 1000px; margin: 0 auto; }
 
-    /* Шапка */
     .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
     .user-info { display: flex; align-items: center; gap: 12px; }
     .avatar { width: 45px; height: 45px; border-radius: 10px; background: #1f6feb; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; }
     .user-details .name { color: #fff; font-size: 16px; font-weight: 600; }
     .user-details .role { color: #8b949e; font-size: 12px; }
 
-    .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .btn { border: none; border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-    .btn-admin { background: #8957e5; color: #fff; display: none; } /* Приховано за замовчуванням для звичайних модераторів */
-    .btn-admin:hover { background: #6e40c9; }
-    .btn-logout { background: #da3633; color: #fff; }
+    .btn-logout { background: #da3633; border: none; border-radius: 8px; color: #fff; font-weight: 600; padding: 9px 16px; font-size: 13px; cursor: pointer; transition: 0.2s; }
     .btn-logout:hover { background: #e5534b; }
 
-    /* Основна картка зміни */
     .shift-card { background: #121721; border: 1px solid #1e2638; border-radius: 14px; padding: 30px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 25px; }
     .shift-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 10px; }
     .shift-status { font-size: 14px; margin-bottom: 20px; color: #8b949e; }
@@ -44,7 +38,6 @@
 <body>
 
   <div class="main-container">
-    <!-- Шапка панелі -->
     <div class="top-header">
       <div class="user-info">
         <div class="avatar" id="userAvatar">U</div>
@@ -53,14 +46,9 @@
           <div class="role" id="userRole">Модератор</div>
         </div>
       </div>
-      <div class="header-actions">
-        <!-- Кнопка панелі керівництва (доступна лише старшим рангам) -->
-        <a href="admin.html" class="btn btn-admin" id="adminPanelBtn">🛡️ Керівництво</a>
-        <button class="btn btn-logout" onclick="logout()">Вийти</button>
-      </div>
+      <button class="btn-logout" onclick="logout()">Вийти</button>
     </div>
 
-    <!-- Блок керування зміною -->
     <div class="shift-card">
       <div class="shift-title">Облік робочої зміни</div>
       <div class="shift-status" id="shiftStatusText">Зміна не розпочата</div>
@@ -76,7 +64,6 @@
 
     const dbClient = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
 
-    // Перевірка авторизації
     let currentUser = JSON.parse(localStorage.getItem('ugta_current_user') || 'null');
     if (!currentUser) {
       window.location.href = 'login.html';
@@ -85,7 +72,6 @@
     const nick = currentUser.nick || currentUser.name || 'Модератор';
     const role = currentUser.role || currentUser.status || 'Модератор';
 
-    // Відображення даних користувача в шапці
     document.getElementById('userName').textContent = nick;
     document.getElementById('userRole').textContent = role;
 
@@ -98,16 +84,6 @@
       document.getElementById('userAvatar').textContent = nick.charAt(0).toUpperCase();
     }
 
-    // Перевірка прав доступу для кнопки «Керівництво»
-    const roleLower = role.toLowerCase();
-    const allowedRoles = ['адміністратор', 'властитель', 'засновник', 'куратор', 'керівник', 'адмін', 'старший модератор'];
-    const hasAdminAccess = allowedRoles.some(r => roleLower.includes(r));
-
-    if (hasAdminAccess) {
-      document.getElementById('adminPanelBtn').style.display = 'inline-flex';
-    }
-
-    // Логіка роботи зміни
     let isOnDuty = localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
     let startTime = parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
     let timerInterval = null;
@@ -118,7 +94,7 @@
 
     function updateUI() {
       if (isOnDuty) {
-        statusText.textContent = "Зміна активна (ви на роботі)";
+        statusText.textContent = "Зміна активна";
         statusText.className = "shift-status active";
         toggleBtn.textContent = "Завершити зміну";
         toggleBtn.className = "btn-shift btn-end";
@@ -149,13 +125,11 @@
 
     window.toggleShift = async function() {
       if (!isOnDuty) {
-        // Початок зміни
         isOnDuty = true;
         startTime = Date.now();
         localStorage.setItem('ugta_is_on_duty_' + nick, 'true');
         localStorage.setItem('ugta_shift_start_' + nick, startTime);
 
-        // Оновлюємо статус в базі Supabase, щоб панель керівництва бачила модератора онлайн
         await dbClient.from('profiles').update({ 
           is_on_duty: true, 
           shift_start: startTime 
@@ -164,11 +138,10 @@
         updateUI();
         startTimer();
       } else {
-        // Завершення зміни
         const endTime = Date.now();
         const durationSeconds = Math.floor((endTime - startTime) / 1000);
 
-        if (durationSeconds > 10) { // Зберігаємо тільки змінні довші за 10 секунд
+        if (durationSeconds > 10) {
           try {
             await saveShift({
               nick: nick,
@@ -187,20 +160,18 @@
         localStorage.removeItem('ugta_is_on_duty_' + nick);
         localStorage.removeItem('ugta_shift_start_' + nick);
 
-        // Очищаємо статус онлайн в базі Supabase
         await dbClient.from('profiles').update({ 
           is_on_duty: false, 
           shift_start: null 
         }).eq('nick', nick);
 
         updateUI();
-        alert("Зміну успішно завершено та збережено!");
       }
     }
 
     window.logout = function() {
       if (isOnDuty) {
-        alert("Будь ласка, спочатку завершіть зміну перед виходом з акаунта!");
+        alert("Будь ласка, спочатку завершіть зміну!");
         return;
       }
       localStorage.removeItem('ugta_current_user');
