@@ -62,19 +62,14 @@
 
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-card-top">Всього користувачів <span>👥</span></div>
-        <div class="stat-value" id="totalUsersCount">0</div>
-        <div class="stat-sub">Зареєстрованих в системі</div>
+        <div class="stat-card-top">Всього змін у базі <span>📊</span></div>
+        <div class="stat-value" id="totalShiftsCount">0</div>
+        <div class="stat-sub">Записаних змін у Firebase</div>
       </div>
       <div class="stat-card">
         <div class="stat-card-top">Зараз онлайн <span>🟢</span></div>
         <div class="stat-value" id="onlineCount">0</div>
-        <div class="stat-sub">Активних змін зараз</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-top">Всього змін <span>📊</span></div>
-        <div class="stat-value" id="totalShiftsCount">0</div>
-        <div class="stat-sub">Завершених змін в системі</div>
+        <div class="stat-sub">Активних модераторів</div>
       </div>
       <div class="stat-card">
         <div class="stat-card-top">Середній час зміни <span>⏱️</span></div>
@@ -108,18 +103,15 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script type="module">
-    import { getAllShifts } from './data.js';
-
-    const dbClient = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
+    import { getAllShifts, subscribeToShifts } from './data.js';
 
     let currentUser = JSON.parse(localStorage.getItem('ugta_current_user') || 'null');
     if (!currentUser) {
       window.location.href = 'login.html';
     }
 
-    // Перевірка ролей
+    // Сувора перевірка ролей
     const userRole = (currentUser.role || currentUser.status || '').toLowerCase();
     const allowedRoles = ['адміністратор', 'властитель', 'засновник', 'куратор', 'керівник', 'адмін', 'старший модератор', 's.m', 'ктп', 'зктп'];
     const hasAccess = allowedRoles.some(r => userRole.includes(r));
@@ -132,12 +124,9 @@
     const now = new Date();
     document.getElementById('currentDateBadge').textContent = `📅 ${now.toLocaleDateString('uk-UA')}`;
 
-    async function loadManagementData() {
+    async function initAdminPanel() {
       try {
         const allShifts = await getAllShifts();
-        const { data: profiles } = await dbClient.from('profiles').select('*');
-        
-        document.getElementById('totalUsersCount').textContent = profiles ? profiles.length : 0;
         document.getElementById('totalShiftsCount').textContent = allShifts.length;
 
         if (allShifts.length > 0) {
@@ -147,86 +136,64 @@
           const mins = Math.floor((avgSecs % 3600) / 60);
           document.getElementById('avgShiftTime').textContent = `${hrs}:${String(mins).padStart(2, '0')}`;
         }
-
-        let onlineList = [];
-        
-        // Перевіряємо поточного користувача через localStorage
-        if (currentUser) {
-          const nick = currentUser.nick || currentUser.name;
-          const isOnDuty = localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
-          const startTime = parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
-
-          if (isOnDuty && startTime > 0) {
-            onlineList.push({
-              nick: nick,
-              server: currentUser.server || '02',
-              startTime: startTime,
-              avatar: localStorage.getItem('ugta_avatar_' + nick) || currentUser.avatar
-            });
-          }
-        }
-
-        // Перевіряємо решту профілів з бази даних / localStorage
-        if (profiles) {
-          profiles.forEach(p => {
-            const nick = p.nick || p.name;
-            if (currentUser && (nick.toLowerCase() === (currentUser.nick || currentUser.name || '').toLowerCase())) {
-              return;
-            }
-
-            const isOnDuty = p.is_on_duty === true || localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
-            const startTime = p.shift_start || parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
-
-            if (isOnDuty && startTime > 0) {
-              onlineList.push({
-                nick: nick,
-                server: p.server || '02',
-                startTime: startTime,
-                avatar: p.avatar || localStorage.getItem('ugta_avatar_' + nick)
-              });
-            }
-          });
-        }
-
-        document.getElementById('onlineCount').textContent = onlineList.length;
-        const tableBody = document.getElementById('onlineUsersTableBody');
-
-        if (onlineList.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8b949e; padding: 20px;">Зараз немає активних модераторів на зміні.</td></tr>`;
-          return;
-        }
-
-        tableBody.innerHTML = onlineList.map(item => {
-          const startDt = new Date(item.startTime);
-          const timeStr = startDt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
-          
-          const diffSecs = Math.max(0, Math.floor((Date.now() - item.startTime) / 1000));
-          const h = Math.floor(diffSecs / 3600);
-          const m = Math.floor((diffSecs % 3600) / 60);
-          const durationStr = `${h} год. ${m} хв.`;
-
-          const avatarStyle = item.avatar ? `background-image: url('${item.avatar}');` : '';
-          const avatarText = item.avatar ? '' : item.nick.charAt(0).toUpperCase();
-
-          return `
-            <tr>
-              <td>
-                <div class="user-cell">
-                  <div class="user-avatar-sm" style="${avatarStyle}">${avatarText}</div>
-                  ${item.nick}
-                </div>
-              </td>
-              <td><span class="server-badge">${item.server}</span></td>
-              <td>${timeStr}</td>
-              <td style="font-family: monospace; color: #58a6ff; font-weight: 600;">${durationStr}</td>
-              <td><span class="status-online">Online</span></td>
-            </tr>
-          `;
-        }).join('');
-
-      } catch (err) {
-        console.error("Помилка завантаження даних:", err);
+      } catch (e) {
+        console.error("Помилка ініціалізації статистики:", e);
       }
+    }
+
+    // Відстеження онлайн модераторів у реальному часі через localStorage та Firebase дані
+    function updateOnlineTable() {
+      let onlineList = [];
+      const nick = currentUser.nick || currentUser.name;
+
+      // Перевіряємо поточного юзера в localStorage
+      const isOnDutyLocal = localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
+      const startTimeLocal = parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
+
+      if (isOnDutyLocal && startTimeLocal > 0) {
+        onlineList.push({
+          nick: nick,
+          server: currentUser.server || '02',
+          startTime: startTimeLocal,
+          avatar: localStorage.getItem('ugta_avatar_' + nick) || currentUser.avatar
+        });
+      }
+
+      document.getElementById('onlineCount').textContent = onlineList.length;
+      const tableBody = document.getElementById('onlineUsersTableBody');
+
+      if (onlineList.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8b949e; padding: 20px;">Зараз немає активних модераторів на зміні.</td></tr>`;
+        return;
+      }
+
+      tableBody.innerHTML = onlineList.map(item => {
+        const startDt = new Date(item.startTime);
+        const timeStr = startDt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+        
+        const diffSecs = Math.max(0, Math.floor((Date.now() - item.startTime) / 1000));
+        const h = Math.floor(diffSecs / 3600);
+        const m = Math.floor((diffSecs % 3600) / 60);
+        const durationStr = `${h} год. ${m} хв.`;
+
+        const avatarStyle = item.avatar ? `background-image: url('${item.avatar}');` : '';
+        const avatarText = item.avatar ? '' : item.nick.charAt(0).toUpperCase();
+
+        return `
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar-sm" style="${avatarStyle}">${avatarText}</div>
+                ${item.nick}
+              </div>
+            </td>
+            <td><span class="server-badge">${item.server}</span></td>
+            <td>${timeStr}</td>
+            <td style="font-family: monospace; color: #58a6ff; font-weight: 600;">${durationStr}</td>
+            <td><span class="status-online">Online</span></td>
+          </tr>
+        `;
+      }).join('');
     }
 
     window.generateReport = function() { alert("Звіт успішно сформовано!"); }
@@ -235,8 +202,9 @@
       window.location.href = 'login.html';
     }
 
-    loadManagementData();
-    setInterval(loadManagementData, 5000);
+    initAdminPanel();
+    updateOnlineTable();
+    setInterval(updateOnlineTable, 3000);
   </script>
 </body>
 </html>
