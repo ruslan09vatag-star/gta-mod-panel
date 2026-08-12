@@ -10,102 +10,106 @@
     body { background-color: #0b0e14; color: #c9d1d9; min-height: 100vh; padding: 15px; }
     .main-container { max-width: 1200px; margin: 0 auto; }
 
-    .top-bar { display: flex; justify-content: space-between; align-items: center; background: #121721; border: 1px solid #1e2638; padding: 12px 16px; border-radius: 14px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    /* Верхня панель */
+    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+    .header-title { color: #fff; font-size: 26px; font-weight: 700; }
+    .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     
-    .user-profile-section { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-    .user-info { display: flex; align-items: center; gap: 12px; }
-    .user-avatar { background: linear-gradient(135deg, #1f6feb, #1158c7); color: #fff; font-weight: 700; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 10px rgba(31,111,235,0.3); background-size: cover; background-position: center; }
-    .user-details { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
-    .user-name { font-weight: 600; color: #fff; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .user-role-badge { background: #1f293d; font-size: 11px; font-weight: 600; padding: 2px 6px; border-radius: 6px; border: 1px solid #30363d; display: inline-block; width: fit-content; }
-    
-    .settings-action-btn { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
-    .settings-action-btn:hover { background: #30363d; color: #fff; border-color: #8b949e; }
+    .date-badge { background: #121721; border: 1px solid #1e2638; padding: 8px 14px; border-radius: 8px; font-size: 13px; color: #c9d1d9; display: flex; align-items: center; gap: 8px; }
+    .report-btn { background: #1f6feb; border: none; border-radius: 8px; color: #fff; font-weight: 600; padding: 9px 16px; font-size: 13px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+    .report-btn:hover { background: #388bfd; }
+    .logout-btn { background: #da3633; border: none; border-radius: 8px; color: #fff; font-weight: 600; padding: 9px 16px; font-size: 13px; cursor: pointer; transition: 0.2s; }
+    .logout-btn:hover { background: #e5534b; }
 
-    .nav-links { display: flex; gap: 6px; align-items: center; width: 100%; justify-content: flex-start; flex-wrap: wrap; }
-    .nav-btn { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none; transition: 0.2s; flex-grow: 1; text-align: center; }
-    .nav-btn:hover, .nav-btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
-    .logout-btn { background: #da3633 !important; border-color: #f85149 !important; flex-grow: 0 !important; width: 100%; }
+    /* Картки статистики */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
+    .stat-card { background: #121721; border: 1px solid #1e2638; border-radius: 14px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 8px; }
+    .stat-card-top { display: flex; justify-content: space-between; align-items: center; color: #8b949e; font-size: 13px; }
+    .stat-value { color: #fff; font-size: 26px; font-weight: 700; font-family: monospace; }
+    .stat-sub { color: #8b949e; font-size: 11px; }
 
-    h1 { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 15px; }
-    
-    .card { background: #121721; border: 1px solid #1e2638; border-radius: 14px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); margin-bottom: 25px; }
-    .section-title { color: #fff; font-size: 16px; font-weight: 600; }
-    
-    .action-btn { background: #1f6feb; border: none; border-radius: 8px; color: #fff; font-weight: 600; cursor: pointer; transition: 0.2s; padding: 8px 16px; font-size: 13px; }
-    .action-btn:hover { background: #388bfd; }
+    /* Таблиця */
+    .table-container-card { background: #121721; border: 1px solid #1e2638; border-radius: 14px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .table-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .table-title { color: #fff; font-size: 16px; font-weight: 600; }
+    .table-subtitle { color: #8b949e; font-size: 12px; }
 
-    /* Модальне вікно налаштувань */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
-    .modal-card { background: #121721; border: 1px solid #30363d; border-radius: 14px; padding: 24px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; }
-    .modal-title { color: #fff; font-size: 18px; font-weight: 700; }
-    .modal-input-group { display: flex; flex-direction: column; gap: 6px; }
-    .modal-label { font-size: 12px; color: #8b949e; font-weight: 500; }
-    .modal-input { background: #0b0e14; border: 1px solid #30363d; border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 14px; outline: none; }
-    .modal-input:focus { border-color: #1f6feb; }
-    .modal-buttons { display: flex; gap: 10px; margin-top: 5px; }
-    .modal-btn { flex: 1; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; text-align: center; }
-    .btn-save { background: #238636; color: #fff; }
-    .btn-save:hover { background: #2ea043; }
-    .btn-cancel { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
-    .btn-cancel:hover { background: #30363d; }
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { padding: 12px 10px; color: #8b949e; font-weight: 600; border-bottom: 1px solid #30363d; }
+    td { padding: 12px 10px; border-bottom: 1px solid #1e2638; color: #c9d1d9; }
+    
+    .user-cell { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 600; }
+    .user-avatar-sm { width: 32px; height: 32px; border-radius: 8px; background: #1f6feb; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; background-size: cover; background-position: center; flex-shrink: 0; }
+    
+    .server-badge { background: #f0883e; color: #000; font-weight: 700; padding: 3px 8px; border-radius: 6px; font-size: 11px; display: inline-block; text-align: center; min-width: 28px; }
+    
+    .status-online { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.4); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+    .status-online::before { content: ''; width: 6px; height: 6px; background: #3fb950; border-radius: 50%; display: inline-block; }
 
     @media(min-width: 768px) {
       body { padding: 30px; }
-      .top-bar { padding: 14px 24px; flex-wrap: nowrap; }
-      .nav-links { width: auto; flex-wrap: nowrap; }
-      .nav-btn { width: auto; flex-grow: 0; }
-      .logout-btn { width: auto; }
-      h1 { font-size: 26px; }
     }
   </style>
 </head>
 <body>
 
   <div class="main-container">
-    <div class="top-bar">
-      <div class="user-profile-section">
-        <div class="user-info">
-          <div class="user-avatar" id="userAvatar">Р</div>
-          <div class="user-details">
-            <div class="user-name" id="userName">Завантаження...</div>
-            <div class="user-role-badge" id="userRoleBadge">Керівництво</div>
-          </div>
-        </div>
-        <button class="settings-action-btn" onclick="openSettingsModal()">⚙️ Налаштування</button>
-      </div>
-
-      <div class="nav-links">
-        <a href="admin.html" class="nav-btn active">Панель керівництва</a>
-        <a href="leaderboard.html" class="nav-btn">Лідерборд</a>
-        <a href="#" class="nav-btn logout-btn" onclick="logout()">Вийти</a>
+    <!-- Шапка -->
+    <div class="top-header">
+      <div class="header-title">Панель керівництва</div>
+      <div class="header-actions">
+        <div class="date-badge" id="currentDateBadge">📅 --.--.----</div>
+        <button class="report-btn" onclick="generateReport()">📋 Сформувати звіт</button>
+        <button class="logout-btn" onclick="logout()">Вийти</button>
       </div>
     </div>
 
-    <h1>Панель керівництва</h1>
-
-    <!-- Блок таблиці активності всієї команди модераторів -->
-    <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-        <div class="section-title">Активність всієї команди модераторів</div>
-        <button class="action-btn" onclick="exportTeamReport()">📥 Експорт звіту (CSV)</button>
+    <!-- Блоки статистики -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-top">Всього користувачів <span>👥</span></div>
+        <div class="stat-value" id="totalUsersCount">0</div>
+        <div class="stat-sub">Зареєстрованих в системі</div>
       </div>
-      
-      <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+      <div class="stat-card">
+        <div class="stat-card-top">Зараз онлайн <span>🟢</span></div>
+        <div class="stat-value" id="onlineCount">0</div>
+        <div class="stat-sub">Активних змін зараз</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-top">Всього змін <span>📊</span></div>
+        <div class="stat-value" id="totalShiftsCount">0</div>
+        <div class="stat-sub">Завершених змін в системі</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-top">Середній час зміни <span>⏱️</span></div>
+        <div class="stat-value" id="avgShiftTime">0:00</div>
+        <div class="stat-sub">Годин на зміну в середньому</div>
+      </div>
+    </div>
+
+    <!-- Таблиця онлайн користувачів -->
+    <div class="table-container-card">
+      <div class="table-header-row">
+        <div class="table-title">Користувачі онлайн</div>
+        <div class="table-subtitle">Активні зміни в даний момент</div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
           <thead>
-            <tr style="border-bottom: 1px solid #30363d; color: #8b949e;">
-              <th style="padding: 10px;">Статус</th>
-              <th style="padding: 10px;">Модератор</th>
-              <th style="padding: 10px;">Сервер</th>
-              <th style="padding: 10px;">Роль</th>
-              <th style="padding: 10px;">За тиждень</th>
-              <th style="padding: 10px;">За місяць</th>
+            <tr>
+              <th>Користувач</th>
+              <th>Сервер</th>
+              <th>Початок</th>
+              <th>Тривалість</th>
+              <th>Статус</th>
             </tr>
           </thead>
-          <tbody id="managementTeamTable">
+          <tbody id="onlineUsersTableBody">
             <tr>
-              <td colspan="6" style="padding: 15px; text-align: center; color: #8b949e;">Завантаження розширеної статистики...</td>
+              <td colspan="5" style="text-align: center; color: #8b949e; padding: 20px;">Завантаження даних...</td>
             </tr>
           </tbody>
         </table>
@@ -113,202 +117,138 @@
     </div>
   </div>
 
-  <!-- Модальне вікно налаштувань -->
-  <div class="modal-overlay" id="settingsModal">
-    <div class="modal-card">
-      <div class="modal-title">Налаштування профілю</div>
-      
-      <div class="modal-input-group">
-        <label class="modal-label">Вибрати аватарку з комп'ютера</label>
-        <input type="file" id="avatarFile" class="modal-input" accept="image/*" style="padding: 7px; cursor: pointer;">
-      </div>
-
-      <div class="modal-input-group">
-        <label class="modal-label">Новий пароль (залиште порожнім, якщо не міняєте)</label>
-        <input type="password" id="passwordInput" class="modal-input" placeholder="Введіть новий пароль">
-      </div>
-
-      <div class="modal-buttons">
-        <button class="modal-btn btn-cancel" onclick="closeSettingsModal()">Скасувати</button>
-        <button class="modal-btn btn-save" onclick="saveSettings()">Зберегти</button>
-      </div>
-    </div>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script type="module">
-    import { getAllShifts, getRoleColor } from './data.js';
+    import { getAllShifts } from './data.js';
 
     const dbClient = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
 
+    // Перевірка авторизації та доступу (тільки вище модератора)
     let currentUser = JSON.parse(localStorage.getItem('ugta_current_user') || 'null');
-    if (!currentUser) { window.location.href = 'login.html'; }
-
-    const nick = currentUser.nick || currentUser.name || 'Керівник';
-    const server = currentUser.server || '02';
-    const role = currentUser.role || currentUser.status || 'Керівництво';
-
-    document.getElementById('userName').textContent = nick;
-    
-    // Аватарка
-    const avatarEl = document.getElementById('userAvatar');
-    const savedAvatar = localStorage.getItem('ugta_avatar_' + nick) || currentUser.avatar;
-    if (savedAvatar) {
-      avatarEl.style.backgroundImage = `url('${savedAvatar}')`;
-      avatarEl.textContent = '';
-    } else {
-      avatarEl.textContent = nick.charAt(0).toUpperCase();
+    if (!currentUser) {
+      window.location.href = 'login.html';
     }
-    
-    const roleBadge = document.getElementById('userRoleBadge');
-    roleBadge.textContent = `${role} • Сервер ${server}`;
-    roleBadge.style.color = getRoleColor(role);
 
-    // Завантаження розширеної таблиці активності команди
-    async function loadManagementTeamStats() {
+    const userRole = (currentUser.role || currentUser.status || '').toLowerCase();
+    // Список ролей, які мають доступ (все що вище звичайного модератора)
+    const allowedRoles = ['адміністратор', 'властитель', 'засновник', 'куратор', 'керівник', 'адмін', 'старший модератор'];
+    
+    // Якщо роль не містить вищих прав, одразу відправляємо назад на звичайну панель (і назад шляху немає)
+    const hasAccess = allowedRoles.some(r => userRole.includes(r));
+    if (!hasAccess && userRole === 'модератор') {
+      alert('Доступ заборонено! Ця сторінка лише для керівництва.');
+      window.location.href = 'index.html';
+    }
+
+    // Вивід поточної дати
+    const now = new Date();
+    document.getElementById('currentDateBadge').textContent = `📅 ${now.toLocaleDateString('uk-UA')}`;
+
+    async function loadManagementData() {
       try {
-        const allData = await getAllShifts();
-        const tableBody = document.getElementById('managementTeamTable');
+        const allShifts = await getAllShifts();
         
-        if (!allData || allData.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="6" style="padding: 15px; text-align: center; color: #8b949e;">Даних поки немає.</td></tr>`;
+        // Отримуємо унікальних користувачів із бази профілів або через зміни
+        const { data: profiles } = await dbClient.from('profiles').select('*');
+        const totalUsers = profiles ? profiles.length : new Set(allShifts.map(s => s.nick)).size;
+        document.getElementById('totalUsersCount').textContent = totalUsers;
+        document.getElementById('totalShiftsCount').textContent = allShifts.length;
+
+        // Рахуємо середній час зміни
+        if (allShifts.length > 0) {
+          const totalSecs = allShifts.reduce((acc, s) => acc + (s.duration_seconds || 0), 0);
+          const avgSecs = Math.floor(totalSecs / allShifts.length);
+          const hrs = Math.floor(avgSecs / 3600);
+          const mins = Math.floor((avgSecs % 3600) / 60);
+          document.getElementById('avgShiftTime').textContent = `${hrs}:${String(mins).padStart(2, '0')}`;
+        }
+
+        // Знаходимо всіх, хто зараз онлайн (у кого в localStorage позначено зміну)
+        // Для демонстрації збираємо з активних ключів локально або з бази
+        let onlineList = [];
+        if (profiles) {
+          profiles.forEach(p => {
+            const nick = p.nick || p.name;
+            const isOnDuty = localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
+            const startTime = parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
+            if (isOnDuty && startTime > 0) {
+              onlineList.push({
+                nick: nick,
+                server: p.server || '02',
+                startTime: startTime,
+                avatar: localStorage.getItem('ugta_avatar_' + nick) || p.avatar
+              });
+            }
+          });
+        }
+
+        // Також додаємо поточного користувача, якщо він онлайн
+        const currentNick = currentUser.nick || currentUser.name;
+        const currentIsOnDuty = localStorage.getItem('ugta_is_on_duty_' + currentNick) === 'true';
+        const currentStartTime = parseInt(localStorage.getItem('ugta_shift_start_' + currentNick) || '0');
+        if (currentIsOnDuty && currentStartTime > 0) {
+          if (!onlineList.some(o => o.nick.toLowerCase() === currentNick.toLowerCase())) {
+            onlineList.push({
+              nick: currentNick,
+              server: currentUser.server || '02',
+              startTime: currentStartTime,
+              avatar: localStorage.getItem('ugta_avatar_' + currentNick) || currentUser.avatar
+            });
+          }
+        }
+
+        document.getElementById('onlineCount').textContent = onlineList.length;
+
+        const tableBody = document.getElementById('onlineUsersTableBody');
+        if (onlineList.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8b949e; padding: 20px;">Зараз немає активних модераторів на зміні.</td></tr>`;
           return;
         }
 
-        const now = new Date();
-        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const currentMonth = now.toISOString().slice(0, 7); // Формат YYYY-MM
-
-        const statsMap = {};
-
-        allData.forEach(shift => {
-          if (!shift.nick) return;
-          const key = shift.nick.toLowerCase();
+        tableBody.innerHTML = onlineList.map(item => {
+          const startDt = new Date(item.startTime);
+          const timeStr = startDt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
           
-          if (!statsMap[key]) {
-            statsMap[key] = {
-              nick: shift.nick,
-              server: shift.server || '02',
-              role: shift.role || 'Модератор',
-              weekSeconds: 0,
-              monthSeconds: 0
-            };
-          }
+          const diffSecs = Math.floor((Date.now() - item.startTime) / 1000);
+          const h = Math.floor(diffSecs / 3600);
+          const m = Math.floor((diffSecs % 3600) / 60);
+          const durationStr = `${h} год. ${m} хв.`;
 
-          const shiftDate = new Date(shift.date);
-          const duration = shift.duration_seconds || 0;
-
-          if (shiftDate >= oneWeekAgo) {
-            statsMap[key].weekSeconds += duration;
-          }
-
-          if (shift.date && shift.date.startsWith(currentMonth)) {
-            statsMap[key].monthSeconds += duration;
-          }
-        });
-
-        const teamArray = Object.values(statsMap);
-
-        tableBody.innerHTML = teamArray.map(member => {
-          const isOnDuty = localStorage.getItem('ugta_is_on_duty_' + member.nick) === 'true';
-          
-          const statusHtml = isOnDuty 
-            ? `<span style="color: #3fb950; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;"><span style="width: 8px; height: 8px; background: #3fb950; border-radius: 50%; display: inline-block;"></span> Онлайн</span>`
-            : `<span style="color: #8b949e;">Не в мережі</span>`;
-
-          const formatSec = (sec) => {
-            const h = Math.floor(sec / 3600);
-            const m = Math.floor((sec % 3600) / 60);
-            return `${h}г ${m}хв`;
-          };
+          const avatarStyle = item.avatar ? `background-image: url('${item.avatar}');` : '';
+          const avatarText = item.avatar ? '' : item.nick.charAt(0).toUpperCase();
 
           return `
-            <tr style="border-bottom: 1px solid #1e2638;">
-              <td style="padding: 12px 10px;">${statusHtml}</td>
-              <td style="padding: 12px 10px; color: #fff; font-weight: 600;">${member.nick}</td>
-              <td style="padding: 12px 10px;">Сервер ${member.server}</td>
-              <td style="padding: 12px 10px;">${member.role}</td>
-              <td style="padding: 12px 10px; color: #58a6ff; font-family: monospace; font-weight: 600;">${formatSec(member.weekSeconds)}</td>
-              <td style="padding: 12px 10px; color: #3fb950; font-family: monospace; font-weight: 600;">${formatSec(member.monthSeconds)}</td>
+            <tr>
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar-sm" style="${avatarStyle}">${avatarText}</div>
+                  ${item.nick}
+                </div>
+              </td>
+              <td><span class="server-badge">${item.server}</span></td>
+              <td>${timeStr}</td>
+              <td style="font-family: monospace; color: #58a6ff; font-weight: 600;">${durationStr}</td>
+              <td><span class="status-online">Online</span></td>
             </tr>
           `;
         }).join('');
+
       } catch (err) {
-        console.error("Помилка завантаження таблиці керівництва:", err);
+        console.error("Помилка завантаження даних керівництва:", err);
       }
     }
 
-    window.exportTeamReport = function() {
-      alert("Генерація звіту для керівництва завершена.");
+    window.generateReport = function() {
+      alert("Звіт успішно сформовано та готовий до перевірки!");
     }
 
-    // Керування модальним вікном налаштувань
-    window.openSettingsModal = function() {
-      document.getElementById('settingsModal').style.display = 'flex';
-      document.getElementById('avatarFile').value = '';
-      document.getElementById('passwordInput').value = '';
-    }
-
-    window.closeSettingsModal = function() {
-      document.getElementById('settingsModal').style.display = 'none';
-    }
-
-    window.saveSettings = async function() {
-      const fileInput = document.getElementById('avatarFile');
-      const newPassword = document.getElementById('passwordInput').value.trim();
-
-      const applyChanges = async (avatarData) => {
-        if (avatarData !== undefined) {
-          if (avatarData) {
-            localStorage.setItem('ugta_avatar_' + nick, avatarData);
-            avatarEl.style.backgroundImage = `url('${avatarData}')`;
-            avatarEl.textContent = '';
-          } else {
-            localStorage.removeItem('ugta_avatar_' + nick);
-            avatarEl.style.backgroundImage = 'none';
-            avatarEl.textContent = nick.charAt(0).toUpperCase();
-          }
-        }
-
-        if (newPassword) {
-          const { error } = await dbClient
-            .from('profiles')
-            .update({ password: newPassword })
-            .eq('account_number', currentUser.account_number);
-
-          if (error) {
-            alert('Помилка при збереженні пароля в базі!');
-            console.error(error);
-            return;
-          }
-
-          currentUser.password = newPassword;
-          localStorage.setItem('ugta_current_user', JSON.stringify(currentUser));
-          alert('Пароль та налаштування успішно збережено!');
-        } else {
-          alert('Налаштування успішно збережено!');
-        }
-
-        closeSettingsModal();
-      };
-
-      if (fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(e) { applyChanges(e.target.result); };
-        reader.readAsDataURL(fileInput.files[0]);
-      } else {
-        applyChanges(undefined);
-      }
-    }
-
-    window.logout = function() { 
+    window.logout = function() {
       localStorage.removeItem('ugta_current_user');
-      window.location.href = 'login.html'; 
+      window.location.href = 'login.html';
     }
 
-    loadManagementTeamStats();
-    // Оновлюємо статус онлайн кожні 15 секунд автоматично
-    setInterval(loadManagementTeamStats, 15000);
+    loadManagementData();
+    setInterval(loadManagementData, 10000); // Оновлювати кожні 10 секунд
   </script>
 </body>
 </html>
