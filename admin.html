@@ -10,7 +10,6 @@
     body { background-color: #0b0e14; color: #c9d1d9; min-height: 100vh; padding: 15px; }
     .main-container { max-width: 1200px; margin: 0 auto; }
 
-    /* Верхня панель */
     .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
     .header-title { color: #fff; font-size: 26px; font-weight: 700; }
     .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -23,14 +22,12 @@
     .logout-btn { background: #da3633; border: none; border-radius: 8px; color: #fff; font-weight: 600; padding: 9px 16px; font-size: 13px; cursor: pointer; transition: 0.2s; }
     .logout-btn:hover { background: #e5534b; }
 
-    /* Картки статистики */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 30px; }
     .stat-card { background: #121721; border: 1px solid #1e2638; border-radius: 14px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 8px; }
     .stat-card-top { display: flex; justify-content: space-between; align-items: center; color: #8b949e; font-size: 13px; }
     .stat-value { color: #fff; font-size: 26px; font-weight: 700; font-family: monospace; }
     .stat-sub { color: #8b949e; font-size: 11px; }
 
-    /* Таблиця */
     .table-container-card { background: #121721; border: 1px solid #1e2638; border-radius: 14px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     .table-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .table-title { color: #fff; font-size: 16px; font-weight: 600; }
@@ -43,15 +40,11 @@
     
     .user-cell { display: flex; align-items: center; gap: 10px; color: #fff; font-weight: 600; }
     .user-avatar-sm { width: 32px; height: 32px; border-radius: 8px; background: #1f6feb; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; background-size: cover; background-position: center; flex-shrink: 0; }
-    
     .server-badge { background: #f0883e; color: #000; font-weight: 700; padding: 3px 8px; border-radius: 6px; font-size: 11px; display: inline-block; text-align: center; min-width: 28px; }
-    
     .status-online { background: rgba(63, 185, 80, 0.15); color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.4); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
     .status-online::before { content: ''; width: 6px; height: 6px; background: #3fb950; border-radius: 50%; display: inline-block; }
 
-    @media(min-width: 768px) {
-      body { padding: 30px; }
-    }
+    @media(min-width: 768px) { body { padding: 30px; } }
   </style>
 </head>
 <body>
@@ -108,9 +101,7 @@
             </tr>
           </thead>
           <tbody id="onlineUsersTableBody">
-            <tr>
-              <td colspan="5" style="text-align: center; color: #8b949e; padding: 20px;">Завантаження даних...</td>
-            </tr>
+            <tr><td colspan="5" style="text-align: center; color: #8b949e; padding: 20px;">Завантаження даних...</td></tr>
           </tbody>
         </table>
       </div>
@@ -128,17 +119,25 @@
       window.location.href = 'login.html';
     }
 
+    // Сувора перевірка ролей: звичайного модератора сюди не пускати
+    const userRole = (currentUser.role || currentUser.status || '').toLowerCase();
+    const allowedRoles = ['адміністратор', 'властитель', 'засновник', 'куратор', 'керівник', 'адмін', 'старший модератор'];
+    const hasAccess = allowedRoles.some(r => userRole.includes(r));
+    
+    if (!hasAccess) {
+      alert('Доступ заборонено! Ця сторінка тільки для керівництва.');
+      window.location.href = 'index.html';
+    }
+
     const now = new Date();
     document.getElementById('currentDateBadge').textContent = `📅 ${now.toLocaleDateString('uk-UA')}`;
 
     async function loadManagementData() {
       try {
         const allShifts = await getAllShifts();
-        
-        // Отримуємо профілі з бази Supabase
         const { data: profiles } = await dbClient.from('profiles').select('*');
-        const totalUsers = profiles ? profiles.length : 0;
-        document.getElementById('totalUsersCount').textContent = totalUsers;
+        
+        document.getElementById('totalUsersCount').textContent = profiles ? profiles.length : 0;
         document.getElementById('totalShiftsCount').textContent = allShifts.length;
 
         if (allShifts.length > 0) {
@@ -150,44 +149,27 @@
         }
 
         let onlineList = [];
-
-        // Перевіряємо профіль кожного користувача з бази на наявність активної зміни
         if (profiles) {
           profiles.forEach(p => {
             const nick = p.nick || p.name;
-            // Перевіряємо як у localStorage (якщо на цьому ж ПК), так і загальний стан або активність
-            const isOnDuty = localStorage.getItem('ugta_is_on_duty_' + nick) === 'true' || p.is_on_duty === true;
-            const startTime = parseInt(localStorage.getItem('ugta_shift_start_' + nick) || p.shift_start || '0');
-            
+            // Перевіряємо загальний статус в базі та локально
+            const isOnDuty = p.is_on_duty === true || localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
+            const startTime = p.shift_start || parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
+
             if (isOnDuty && startTime > 0) {
               onlineList.push({
                 nick: nick,
                 server: p.server || '02',
                 startTime: startTime,
-                avatar: localStorage.getItem('ugta_avatar_' + nick) || p.avatar
+                avatar: p.avatar || localStorage.getItem('ugta_avatar_' + nick)
               });
             }
           });
         }
 
-        // Також додаємо поточного користувача примусово, якщо він зараз на зміні
-        const currentNick = currentUser.nick || currentUser.name;
-        const currentIsOnDuty = localStorage.getItem('ugta_is_on_duty_' + currentNick) === 'true';
-        const currentStartTime = parseInt(localStorage.getItem('ugta_shift_start_' + currentNick) || '0');
-        if (currentIsOnDuty && currentStartTime > 0) {
-          if (!onlineList.some(o => o.nick.toLowerCase() === currentNick.toLowerCase())) {
-            onlineList.push({
-              nick: currentNick,
-              server: currentUser.server || '02',
-              startTime: currentStartTime,
-              avatar: localStorage.getItem('ugta_avatar_' + currentNick) || currentUser.avatar
-            });
-          }
-        }
-
         document.getElementById('onlineCount').textContent = onlineList.length;
-
         const tableBody = document.getElementById('onlineUsersTableBody');
+
         if (onlineList.length === 0) {
           tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #8b949e; padding: 20px;">Зараз немає активних модераторів на зміні.</td></tr>`;
           return;
@@ -222,21 +204,18 @@
         }).join('');
 
       } catch (err) {
-        console.error("Помилка завантаження даних керівництва:", err);
+        console.error("Помилка завантаження даних:", err);
       }
     }
 
-    window.generateReport = function() {
-      alert("Звіт успішно сформовано та готовий до перевірки!");
-    }
-
+    window.generateReport = function() { alert("Звіт успішно сформовано!"); }
     window.logout = function() {
       localStorage.removeItem('ugta_current_user');
       window.location.href = 'login.html';
     }
 
     loadManagementData();
-    setInterval(loadManagementData, 5000); // Оновлювати кожні 5 секунд
+    setInterval(loadManagementData, 5000);
   </script>
 </body>
 </html>
