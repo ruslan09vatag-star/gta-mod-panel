@@ -22,7 +22,6 @@
     .settings-action-btn { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
     .settings-action-btn:hover { background: #30363d; color: #fff; border-color: #8b949e; }
 
-    /* Кнопка Керівництво для старших рангів (за замовчуванням прихована) */
     .admin-link-btn { background: #8957e5 !important; border-color: #8957e5 !important; color: #fff !important; display: none; }
     .admin-link-btn:hover { background: #6e40c9 !important; }
 
@@ -58,7 +57,6 @@
     .history-date { color: #8b949e; font-size: 12px; }
     .history-duration { font-weight: 600; color: #3fb950; font-family: monospace; }
 
-    /* Модальне вікно налаштувань */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 15px; }
     .modal-card { background: #121721; border: 1px solid #30363d; border-radius: 14px; padding: 24px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; }
     .modal-title { color: #fff; font-size: 18px; font-weight: 700; }
@@ -93,7 +91,6 @@
 
   <div class="main-container">
     <div class="top-bar">
-      <!-- Блок профілю та кнопка налаштування поруч -->
       <div class="user-profile-section">
         <div class="user-info">
           <div class="user-avatar" id="userAvatar">Р</div>
@@ -108,7 +105,6 @@
       <div class="nav-links">
         <a href="index.html" class="nav-btn active">Панель</a>
         <a href="leaderboard.html" class="nav-btn">Лідерборд</a>
-        <!-- Кнопка Керівництво (показується тільки для S.M, ЗКТП, КТП тощо) -->
         <a href="admin.html" class="nav-btn admin-link-btn" id="adminNavBtn">Керівництво</a>
         <a href="#" class="nav-btn logout-btn" onclick="logout()">Вийти</a>
       </div>
@@ -142,21 +138,17 @@
     </div>
   </div>
 
-  <!-- Модальне вікно налаштувань -->
   <div class="modal-overlay" id="settingsModal">
     <div class="modal-card">
       <div class="modal-title">Налаштування профілю</div>
-      
       <div class="modal-input-group">
         <label class="modal-label">Вибрати аватарку з комп'ютера</label>
         <input type="file" id="avatarFile" class="modal-input" accept="image/*" style="padding: 7px; cursor: pointer;">
       </div>
-
       <div class="modal-input-group">
         <label class="modal-label">Новий пароль (залиште порожнім, якщо не міняєте)</label>
         <input type="password" id="passwordInput" class="modal-input" placeholder="Введіть новий пароль">
       </div>
-
       <div class="modal-buttons">
         <button class="modal-btn btn-cancel" onclick="closeSettingsModal()">Скасувати</button>
         <button class="modal-btn btn-save" onclick="saveSettings()">Зберегти</button>
@@ -168,8 +160,6 @@
   <script type="module">
     import { getAllShifts, saveShift, getRoleColor } from './data.js';
 
-    const dbClient = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
-
     let currentUser = JSON.parse(localStorage.getItem('ugta_current_user') || 'null');
     if (!currentUser) { window.location.href = 'login.html'; }
 
@@ -177,6 +167,7 @@
     const server = currentUser.server || '02';
     const role = currentUser.role || currentUser.status || 'Модератор';
 
+    // Миттєве завантаження даних профілю з localStorage без зависань
     document.getElementById('userName').textContent = nick;
     
     const avatarEl = document.getElementById('userAvatar');
@@ -192,13 +183,9 @@
     roleBadge.textContent = `${role} • Сервер ${server}`;
     roleBadge.style.color = getRoleColor(role);
 
-    // Перевірка прав для відображення кнопки "Керівництво" (S.M, ЗКТП, КТП, Адміністратор тощо)
     const upperRole = role.toUpperCase().trim();
     const privilegedRoles = ['S.M', 'ЗКТП', 'КТП', 'АДМІНІСТРАТОР', 'КУРАТОР', 'ЗАСНОВНИК', 'КЕРІВНИК', 'ГАЛ. АДМІНІСТРАТОР', 'ГОЛОВНИЙ АДМІНІСТРАТОР'];
-    
-    // Перевіряємо також часткові співпадіння (якщо роль містить S.M, КТП або ЗКТП)
-    const hasAccess = privilegedRoles.some(r => upperRole.includes(r));
-    if (hasAccess) {
+    if (privilegedRoles.some(r => upperRole.includes(r))) {
       document.getElementById('adminNavBtn').style.display = 'inline-block';
     }
 
@@ -242,17 +229,8 @@
         updateShiftUI();
       } else {
         const durationSec = Math.max(1, Math.floor((currentTime - shiftStartTime) / 1000));
-        
         shiftToggleBtn.disabled = true;
         shiftToggleBtn.textContent = 'Збереження...';
-
-        let isSaved = false;
-        const safetyTimeout = setTimeout(() => {
-          if (!isSaved) {
-            shiftToggleBtn.disabled = false;
-            loadShiftsHistory();
-          }
-        }, 5000);
 
         try {
           await saveShift({
@@ -262,7 +240,6 @@
             date: todayStr,
             duration_seconds: durationSec
           });
-          isSaved = true;
         } catch (error) {
           console.error("Помилка збереження зміни:", error);
         } finally {
@@ -271,9 +248,7 @@
           localStorage.removeItem('ugta_is_on_duty_' + nick);
           localStorage.removeItem('ugta_shift_start_' + nick);
           
-          clearTimeout(safetyTimeout);
           shiftToggleBtn.disabled = false;
-          
           updateShiftUI();
           loadShiftsHistory();
         }
@@ -281,34 +256,39 @@
     }
 
     async function loadShiftsHistory() {
-      const allData = await getAllShifts();
-      const shifts = allData.filter(s => s.nick && s.nick.toLowerCase() === nick.toLowerCase());
-      
-      const historyList = document.getElementById('historyList');
-      if (shifts.length === 0) { 
-        historyList.innerHTML = `<div style="color: #8b949e; font-size: 13px;">Ще немає завершених змін.</div>`; 
-      } else {
-        historyList.innerHTML = shifts.slice().reverse().slice(0, 10).map(shift => {
-          const h = Math.floor(shift.duration_seconds / 3600);
-          const m = Math.floor((shift.duration_seconds % 3600) / 60);
-          const s = shift.duration_seconds % 60;
-          return `<div class="history-item"><span class="history-date">Дата: <b>${shift.date}</b></span><span class="history-duration">${h}г ${m}хв ${s}с</span></div>`;
-        }).join('');
+      try {
+        const allData = await getAllShifts();
+        const shifts = allData.filter(s => s.nick && s.nick.toLowerCase() === nick.toLowerCase());
+        
+        const historyList = document.getElementById('historyList');
+        if (shifts.length === 0) { 
+          historyList.innerHTML = `<div style="color: #8b949e; font-size: 13px;">Ще немає завершених змін.</div>`; 
+        } else {
+          historyList.innerHTML = shifts.slice().reverse().slice(0, 10).map(shift => {
+            const h = Math.floor(shift.duration_seconds / 3600);
+            const m = Math.floor((shift.duration_seconds % 3600) / 60);
+            const s = shift.duration_seconds % 60;
+            return `<div class="history-item"><span class="history-date">Дата: <b>${shift.date}</b></span><span class="history-duration">${h}г ${m}хв ${s}с</span></div>`;
+          }).join('');
+        }
+
+        let todayTotalSec = 0;
+        let yesterdayTotalSec = 0;
+        shifts.forEach(s => {
+          if (s.date === todayStr) todayTotalSec += s.duration_seconds;
+          if (s.date === yesterdayStr) yesterdayTotalSec += s.duration_seconds;
+        });
+
+        if (isOnDuty && shiftStartTime > 0) { 
+          todayTotalSec += Math.floor((Date.now() - shiftStartTime) / 1000); 
+        }
+
+        document.getElementById('todayTime').textContent = formatTime(todayTotalSec);
+        document.getElementById('yesterdayTime').textContent = formatTime(yesterdayTotalSec);
+      } catch (err) {
+        console.error("Помилка завантаження історії змін:", err);
+        document.getElementById('historyList.innerHTML = `<div style="color: #f85149; font-size: 13px;">Помилка завантаження історії.</div>`;`
       }
-
-      let todayTotalSec = 0;
-      let yesterdayTotalSec = 0;
-      shifts.forEach(s => {
-        if (s.date === todayStr) todayTotalSec += s.duration_seconds;
-        if (s.date === yesterdayStr) yesterdayTotalSec += s.duration_seconds;
-      });
-
-      if (isOnDuty && shiftStartTime > 0) { 
-        todayTotalSec += Math.floor((Date.now() - shiftStartTime) / 1000); 
-      }
-
-      document.getElementById('todayTime').textContent = formatTime(todayTotalSec);
-      document.getElementById('yesterdayTime').textContent = formatTime(yesterdayTotalSec);
     }
 
     function formatTime(sec) {
@@ -331,6 +311,7 @@
     window.saveSettings = async function() {
       const fileInput = document.getElementById('avatarFile');
       const newPassword = document.getElementById('passwordInput').value.trim();
+      const dbClient = supabase.createClient('https://zhvhkbchztcqorocbngv.supabase.co', 'sb_publishable_pv6F4MnwE7AUowAOVddI3A_8TNfwm35');
 
       const applyChanges = async (avatarData) => {
         if (avatarData !== undefined) {
