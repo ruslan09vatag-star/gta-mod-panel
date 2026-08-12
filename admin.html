@@ -119,7 +119,7 @@
       window.location.href = 'login.html';
     }
 
-    // Перевірка ролей: додано S.M, КТП, ЗКТП та інші керівні посади
+    // Перевірка ролей
     const userRole = (currentUser.role || currentUser.status || '').toLowerCase();
     const allowedRoles = ['адміністратор', 'властитель', 'засновник', 'куратор', 'керівник', 'адмін', 'старший модератор', 's.m', 'ктп', 'зктп'];
     const hasAccess = allowedRoles.some(r => userRole.includes(r));
@@ -149,9 +149,31 @@
         }
 
         let onlineList = [];
+        
+        // Перевіряємо поточного користувача через localStorage
+        if (currentUser) {
+          const nick = currentUser.nick || currentUser.name;
+          const isOnDuty = localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
+          const startTime = parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
+
+          if (isOnDuty && startTime > 0) {
+            onlineList.push({
+              nick: nick,
+              server: currentUser.server || '02',
+              startTime: startTime,
+              avatar: localStorage.getItem('ugta_avatar_' + nick) || currentUser.avatar
+            });
+          }
+        }
+
+        // Перевіряємо решту профілів з бази даних / localStorage
         if (profiles) {
           profiles.forEach(p => {
             const nick = p.nick || p.name;
+            if (currentUser && (nick.toLowerCase() === (currentUser.nick || currentUser.name || '').toLowerCase())) {
+              return;
+            }
+
             const isOnDuty = p.is_on_duty === true || localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
             const startTime = p.shift_start || parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
 
@@ -178,7 +200,7 @@
           const startDt = new Date(item.startTime);
           const timeStr = startDt.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
           
-          const diffSecs = Math.floor((Date.now() - item.startTime) / 1000);
+          const diffSecs = Math.max(0, Math.floor((Date.now() - item.startTime) / 1000));
           const h = Math.floor(diffSecs / 3600);
           const m = Math.floor((diffSecs % 3600) / 60);
           const durationStr = `${h} год. ${m} хв.`;
