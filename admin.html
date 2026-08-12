@@ -119,9 +119,9 @@
       window.location.href = 'login.html';
     }
 
-    // Сувора перевірка ролей: звичайного модератора сюди не пускати
+    // Перевірка ролей: додано S.M, КТП, ЗКТП та інші керівні посади
     const userRole = (currentUser.role || currentUser.status || '').toLowerCase();
-    const allowedRoles = ['адміністратор', 'властитель', 'засновник', 'куратор', 'керівник', 'адмін', 'старший модератор'];
+    const allowedRoles = ['адміністратор', 'властитель', 'засновник', 'куратор', 'керівник', 'адмін', 'старший модератор', 's.m', 'ктп', 'зктп'];
     const hasAccess = allowedRoles.some(r => userRole.includes(r));
     
     if (!hasAccess) {
@@ -152,7 +152,6 @@
         if (profiles) {
           profiles.forEach(p => {
             const nick = p.nick || p.name;
-            // Перевіряємо загальний статус в базі та локально
             const isOnDuty = p.is_on_duty === true || localStorage.getItem('ugta_is_on_duty_' + nick) === 'true';
             const startTime = p.shift_start || parseInt(localStorage.getItem('ugta_shift_start_' + nick) || '0');
 
