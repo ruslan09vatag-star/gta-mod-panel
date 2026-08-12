@@ -12,7 +12,6 @@
 
     .top-bar { display: flex; justify-content: space-between; align-items: center; background: #121721; border: 1px solid #1e2638; padding: 12px 16px; border-radius: 14px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
     
-    /* Блок профілю та кнопки налаштування поруч */
     .user-profile-section { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
     .user-info { display: flex; align-items: center; gap: 12px; }
     .user-avatar { background: linear-gradient(135deg, #1f6feb, #1158c7); color: #fff; font-weight: 700; width: 42px; height: 42px; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 10px rgba(31,111,235,0.3); background-size: cover; background-position: center; }
@@ -105,6 +104,7 @@
       <div class="nav-links">
         <a href="index.html" class="nav-btn active">Панель</a>
         <a href="leaderboard.html" class="nav-btn">Лідерборд</a>
+        <a href="admin.html" class="nav-btn">Керівництво</a>
         <a href="#" class="nav-btn logout-btn" onclick="logout()">Вийти</a>
       </div>
     </div>
@@ -174,7 +174,6 @@
 
     document.getElementById('userName').textContent = nick;
     
-    // Завантаження аватарки з localStorage
     const avatarEl = document.getElementById('userAvatar');
     const savedAvatar = localStorage.getItem('ugta_avatar_' + nick) || currentUser.avatar;
     if (savedAvatar) {
@@ -304,7 +303,6 @@
       return `${h}:${m}:${s}`;
     }
 
-    // Модальне вікно налаштувань
     window.openSettingsModal = function() {
       document.getElementById('settingsModal').style.display = 'flex';
       document.getElementById('avatarFile').value = '';
