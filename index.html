@@ -22,6 +22,10 @@
     .settings-action-btn { background: #21262d; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; }
     .settings-action-btn:hover { background: #30363d; color: #fff; border-color: #8b949e; }
 
+    /* Кнопка Керівництво для старших рангів (за замовчуванням прихована) */
+    .admin-link-btn { background: #8957e5 !important; border-color: #8957e5 !important; color: #fff !important; display: none; }
+    .admin-link-btn:hover { background: #6e40c9 !important; }
+
     .nav-links { display: flex; gap: 6px; align-items: center; width: 100%; justify-content: flex-start; flex-wrap: wrap; }
     .nav-btn { background: #161b22; border: 1px solid #30363d; color: #c9d1d9; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; text-decoration: none; transition: 0.2s; flex-grow: 1; text-align: center; }
     .nav-btn:hover, .nav-btn.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
@@ -104,7 +108,8 @@
       <div class="nav-links">
         <a href="index.html" class="nav-btn active">Панель</a>
         <a href="leaderboard.html" class="nav-btn">Лідерборд</a>
-        <a href="admin.html" class="nav-btn">Керівництво</a>
+        <!-- Кнопка Керівництво (показується тільки для S.M, ЗКТП, КТП тощо) -->
+        <a href="admin.html" class="nav-btn admin-link-btn" id="adminNavBtn">Керівництво</a>
         <a href="#" class="nav-btn logout-btn" onclick="logout()">Вийти</a>
       </div>
     </div>
@@ -186,6 +191,16 @@
     const roleBadge = document.getElementById('userRoleBadge');
     roleBadge.textContent = `${role} • Сервер ${server}`;
     roleBadge.style.color = getRoleColor(role);
+
+    // Перевірка прав для відображення кнопки "Керівництво" (S.M, ЗКТП, КТП, Адміністратор тощо)
+    const upperRole = role.toUpperCase().trim();
+    const privilegedRoles = ['S.M', 'ЗКТП', 'КТП', 'АДМІНІСТРАТОР', 'КУРАТОР', 'ЗАСНОВНИК', 'КЕРІВНИК', 'ГАЛ. АДМІНІСТРАТОР', 'ГОЛОВНИЙ АДМІНІСТРАТОР'];
+    
+    // Перевіряємо також часткові співпадіння (якщо роль містить S.M, КТП або ЗКТП)
+    const hasAccess = privilegedRoles.some(r => upperRole.includes(r));
+    if (hasAccess) {
+      document.getElementById('adminNavBtn').style.display = 'inline-block';
+    }
 
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
