@@ -167,7 +167,6 @@
     const server = currentUser.server || '02';
     const role = currentUser.role || currentUser.status || 'Модератор';
 
-    // Миттєве завантаження даних профілю з localStorage без зависань
     document.getElementById('userName').textContent = nick;
     
     const avatarEl = document.getElementById('userAvatar');
@@ -287,7 +286,7 @@
         document.getElementById('yesterdayTime').textContent = formatTime(yesterdayTotalSec);
       } catch (err) {
         console.error("Помилка завантаження історії змін:", err);
-        document.getElementById('historyList.innerHTML = `<div style="color: #f85149; font-size: 13px;">Помилка завантаження історії.</div>`;`
+        document.getElementById('historyList').innerHTML = `<div style="color: #f85149; font-size: 13px;">Помилка завантаження історії.</div>`;
       }
     }
 
